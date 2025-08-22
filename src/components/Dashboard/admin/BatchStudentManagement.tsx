@@ -10,7 +10,7 @@ import {
   Mail,
   Phone,
   Calendar,
-  BookOpen,
+  BookOpen,  
   Eye,
   Edit3,
   Trash2,

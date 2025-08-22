@@ -220,3 +220,4 @@ const ProfilePageExample: React.FC<ProfilePageExampleProps> = ({ className = '' 
 };
 
 export default ProfilePageExample;
+

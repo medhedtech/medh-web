@@ -1105,22 +1105,39 @@ const StudentDashboardMain: React.FC = () => {
                                   </>
                                 )}
                                 
-                                {course.id === 'welcome-slide-2' && (
-                                  <>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      <span className="truncate">Self-paced learning</span>
-                                    </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      <span className="truncate">24/7 access</span>
-                                    </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      <span className="truncate">Mobile-friendly</span>
-                                    </div>
-                                  </>
-                                )}
+                                                                 {course.id === 'welcome-slide-2' && (
+                                   <>
+                                     <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                       <span className="truncate">Self-paced learning</span>
+                                     </div>
+                                     <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                       <span className="truncate">24/7 access</span>
+                                     </div>
+                                     <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
+                                       <span className="truncate">Mobile-friendly</span>
+                                     </div>
+                                   </>
+                                 )}
+                                 
+                                 {course.id === 'welcome-slide-3' && (
+                                   <>
+                                     <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                       <span className="truncate">Live sessions available</span>
+                                     </div>
+                                     <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                       <span className="truncate">Premium content</span>
+                                     </div>
+                                     <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                       <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
+                                       <span className="truncate">Job assistance</span>
+                                     </div>
+                                   </>
+                                 )}
                                     </div>
                                     </div>
                           </div>
