@@ -45,8 +45,8 @@ export default function LiveClassesPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'categories' | 'sessions'>('sessions');
-  const [filter, setFilter] = useState<'all' | 'live' | 'scheduled' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
 
   const [courseCategories, setCourseCategories] = useState<ICourseCategory[]>([]);
   const [sessions, setSessions] = useState<ILiveSession[]>([]);
@@ -140,25 +140,21 @@ export default function LiveClassesPage() {
     router.push(`/dashboards/admin/live-classes/ai-data-science/create-session?edit=${sessionId}`);
   };
 
-     // Filter sessions based on status and search query
-   console.log('Filtering sessions:', {
-     sessionsLength: sessions.length,
-     sessions: sessions,
-     filter: filter,
-     searchQuery: searchQuery
-   });
-   
-   const filteredSessions = Array.isArray(sessions) ? sessions.filter(session => {
-     console.log('Filtering session:', session);
-     const matchesFilter = filter === 'all' || session.status === filter;
-     const matchesSearch = searchQuery === '' || 
-                          (session.sessionTitle && session.sessionTitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                          (session.instructorId && session.instructorId.toString().toLowerCase().includes(searchQuery.toLowerCase()));
-     console.log('Filter result:', { matchesFilter, matchesSearch, sessionStatus: session.status });
-     return matchesFilter && matchesSearch;
-   }) : [];
-   
-   console.log('Filtered sessions result:', filteredSessions);
+  // Filter sessions based on search query
+  const filteredSessions = Array.isArray(sessions) ? sessions.filter(session => {
+    if (searchQuery === '') return true;
+    
+    const searchLower = searchQuery.toLowerCase();
+    const titleMatch = session.sessionTitle && session.sessionTitle.toLowerCase().includes(searchLower);
+    const instructorMatch = typeof session.instructorId === 'object' && session.instructorId?.full_name 
+      ? session.instructorId.full_name.toLowerCase().includes(searchLower)
+      : false;
+    const studentMatch = session.students && session.students.some((student: any) => 
+      (student.name || student.full_name || '').toLowerCase().includes(searchLower)
+    );
+    
+    return titleMatch || instructorMatch || studentMatch;
+  }) : [];
   
      // console.log('Total sessions:', sessions.length);
    // console.log('Filtered sessions:', filteredSessions.length);
@@ -236,39 +232,23 @@ export default function LiveClassesPage() {
             </div>
             
             <div className="flex items-center gap-4">
-              {/* Primary Create Session Button */}
+              {/* Create Live Session Button */}
               <button
                 onClick={() => router.push('/dashboards/admin/live-classes/ai-data-science/create-session')}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
               >
                 <FaPlus className="w-4 h-4" />
-                Create Session
-              </button>
-              
-              {/* Quick Create Session Button */}
-              <button
-                onClick={() => router.push('/dashboards/admin/live-classes/ai-data-science/create-session')}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 hover:shadow-md"
-              >
-                <FaPlus className="w-3 h-3" />
-                Quick Add
-              </button>
-              
-              <button
-                onClick={loadSessions}
-                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-              >
-                <FaSync className="w-4 h-4" />
-                Refresh Data
+                Create Live Session
               </button>
             </div>
+
           </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search Bar */}
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex items-center gap-4">
           <div className="flex-1">
             <div className="relative">
               <input
@@ -276,38 +256,13 @@ export default function LiveClassesPage() {
                 placeholder="Search sessions, instructors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
           </div>
-          
-                    <div className="flex gap-2">
-            {(['all', 'live', 'scheduled', 'completed'] as const).map((filterOption) => (
-              <button
-                key={filterOption}
-                onClick={() => setFilter(filterOption)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === filterOption
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
-              </button>
-            ))}
-            
-            {/* Add Session Button in Filters */}
-            <button
-              onClick={() => router.push('/dashboards/admin/live-classes/ai-data-science/create-session')}
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2"
-            >
-              <FaPlus className="w-3 h-3" />
-              Add Session
-            </button>
-          </div>
-          </div>
         </div>
+      </div>
 
              {/* Main Content */}
        <div className="max-w-7xl mx-auto px-6 py-10">
@@ -339,7 +294,10 @@ export default function LiveClassesPage() {
                    No Live Sessions Found
                  </h3>
                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                   No sessions match your current filters. Try adjusting your search or create a new session.
+                   {searchQuery 
+                     ? `No sessions found matching "${searchQuery}". Try adjusting your search or create a new session.`
+                     : 'No live sessions available. Create your first session to get started.'
+                   }
                  </p>
                                    {/* Debug info removed */}
                 <button
@@ -352,148 +310,86 @@ export default function LiveClassesPage() {
               </div>
             </div>
           ) : (
-                         // Sessions Grid
-             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 p-4">
-               {Array.isArray(filteredSessions) && filteredSessions.map((session, index) => (
-                <div
-                  key={session._id}
-                  className="group bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-3xl transition-all duration-500 border border-gray-200/50 dark:border-gray-700/50 hover:border-blue-400/80 dark:hover:border-blue-500/80 transform hover:-translate-y-3 hover:scale-105 backdrop-blur-sm cursor-pointer"
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    animation: 'fadeInUp 0.6s ease-out forwards'
-                  }}
-                  onClick={() => window.open(`/session/${session._id}`, '_blank')}
-                >
-                  {/* Thumbnail - Clickable */}
-                  <div 
-                    className="relative aspect-[21/9] bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 overflow-hidden cursor-pointer"
-                    onClick={() => window.open(`/session/${session._id}`, '_blank')}
-                  >
-                    {/* Animated Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 via-purple-500/90 to-pink-500/90 animate-pulse"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/70 to-purple-600/70 flex items-center justify-center">
-                      <div className="relative">
-                        <FaVideo className="text-white text-5xl drop-shadow-2xl animate-bounce" />
-                        <div className="absolute inset-0 bg-white/20 rounded-full blur-xl animate-ping"></div>
-                      </div>
-                    </div>
-                    
-                    {/* Status Badge */}
-                    <div className="absolute top-4 left-4 z-10">
-                      {getStatusBadge(session.status)}
-                    </div>
-                    
-                    {/* Play Button Overlay */}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-500 flex items-center justify-center">
-                      <div className="w-20 h-20 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform scale-50 group-hover:scale-100 shadow-2xl border-4 border-white/20">
-                        <FaPlay className="text-gray-900 ml-1 text-xl" />
-                      </div>
-                    </div>
-                    
-                    {/* Duration */}
-                    <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-md text-white text-sm px-4 py-2 rounded-full font-semibold border border-white/20">
-                      {session.duration || 90} min
-                    </div>
-                    
-                    {/* Multiple Gradient Overlays */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20"></div>
-                    
-                    {/* Animated Particles */}
-                    <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/30 rounded-full animate-ping"></div>
-                    <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white/40 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
-                    <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-white/25 rounded-full animate-ping" style={{animationDelay: '2s'}}></div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-3 relative">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
-                    {/* Title */}
-                    <h3 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300 leading-tight relative z-10">
-                      {session.sessionTitle}
-                    </h3>
-                    
-                    {/* Session Number */}
-                    <div className="flex items-center justify-between mb-2 relative z-10">
-                      <span className="text-xs bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-bold px-2 py-1 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                        Session #{session.sessionNo}
-                      </span>
-                    </div>
-                    
-                    {/* Session Info - Horizontal Layout */}
-                    <div className="grid grid-cols-3 gap-2 mb-3 relative z-10">
-                      {/* Date */}
-                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-700/50 p-1.5 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-600/50 transition-colors duration-200">
-                        <FaCalendarAlt className="text-blue-500 text-xs" />
-                        <span className="font-medium truncate">{formatDate(session.video?.date || session.date || new Date())}</span>
-                      </div>
-                      
-                      {/* Instructor */}
-                      <div className="flex items-center gap-1 text-xs bg-blue-50/50 dark:bg-blue-900/20 p-1.5 rounded-lg hover:bg-blue-100/50 dark:hover:bg-blue-800/30 transition-colors duration-200">
-                        <FaUser className="text-blue-500 text-xs" />
-                        <span className="font-semibold text-blue-600 dark:text-blue-400 truncate">
-                          {typeof session.instructorId === 'object' && session.instructorId?.full_name 
-                            ? session.instructorId.full_name 
-                            : `Instructor: ${session.instructorId}`}
-                        </span>
-                      </div>
-                      
-                      {/* Students */}
-                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 bg-green-50/50 dark:bg-green-900/20 p-1.5 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-800/30 transition-colors duration-200">
-                        <FaUsers className="text-green-500 text-xs" />
-                        <span className="font-medium">{session.students?.length || 0} students</span>
-                      </div>
-                    </div>
-                    
-                    {/* Student Names - Only show if there are students */}
-                    {session.students && session.students.length > 0 && (
-                      <div className="text-xs text-gray-500 dark:text-gray-500 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900/20 p-2 rounded-lg border border-gray-200/50 dark:border-gray-600/50 mb-3">
-                        <span className="font-semibold text-gray-700 dark:text-gray-300 mb-1 block">Students:</span>
-                        <div className="flex flex-wrap gap-1">
-                          {session.students.slice(0, 3).map((student: any, idx: number) => (
-                            <span key={idx} className="bg-white/70 dark:bg-gray-600/70 px-2 py-0.5 rounded-full text-xs font-medium border border-gray-200/50 dark:border-gray-500/50">
-                              {student.name || student.full_name || `Student ${idx + 1}`}
-                            </span>
-                          ))}
-                          {session.students.length > 3 && (
-                            <span className="bg-gray-200/70 dark:bg-gray-500/70 px-2 py-0.5 rounded-full text-xs font-medium">
-                              +{session.students.length - 3} more
-                            </span>
-                          )}
+            // Simple Sessions List
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="p-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Live Sessions</h2>
+                
+                {Array.isArray(filteredSessions) && filteredSessions.length > 0 ? (
+                  <div className="space-y-4">
+                    {filteredSessions.map((session, index) => (
+                      <div
+                        key={session._id}
+                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        {/* Session Number */}
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+                            {index + 1}
+                          </div>
+                          
+                          {/* Session Details */}
+                          <div>
+                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                              {session.sessionTitle}
+                            </h3>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              Session #{session.sessionNo} • {formatDate(session.date)} • {getStatusBadge(session.status)}
+                            </div>
+                            
+                            {/* Student Names */}
+                            {session.students && session.students.length > 0 && (
+                              <div className="mt-2">
+                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Students: </span>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                  {session.students.map((student: any, idx: number) => 
+                                    student.name || student.full_name || `Student ${idx + 1}`
+                                  ).join(', ')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Instructor and Actions */}
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {typeof session.instructorId === 'object' && session.instructorId?.full_name 
+                                ? session.instructorId.full_name 
+                                : 'Instructor'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {session.students?.length || 0} student{(session.students?.length || 0) !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                          
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => handleEditSession(session._id)}
+                            className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 bg-white dark:bg-gray-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:scale-110 hover:shadow-md"
+                            title="Edit session"
+                          >
+                            <FaEdit className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                    )}
-                    
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-gray-200/50 dark:border-gray-600/50 relative z-10">
-                      <button 
-                        className="flex-1 py-2 px-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white text-xs font-bold rounded-lg transition-all duration-300 hover:shadow-lg transform hover:scale-105"
-                        onClick={() => window.open(`/session/${session._id}`, '_blank')}
-                      >
-                        Join Session
-                      </button>
-                      <button 
-                        className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 bg-gray-50/80 dark:bg-gray-700/80 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:scale-110 hover:shadow-md backdrop-blur-sm"
-                        title="Share session"
-                      >
-                        <FaShare className="text-xs" />
-                      </button>
-                      <button 
-                        className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 bg-gray-50/80 dark:bg-gray-700/80 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 hover:scale-110 hover:shadow-md backdrop-blur-sm"
-                        title="Edit session"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditSession(session._id);
-                        }}
-                      >
-                        <FaEdit className="text-xs" />
-                      </button>
-                    </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                ) : (
+                  <div className="text-center py-8">
+                    <FaVideo className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {searchQuery ? `No sessions found matching "${searchQuery}"` : 'No live sessions found'}
+                    </p>
+                    {searchQuery && (
+                      <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                        Try adjusting your search terms or create a new session
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )
         ) : (
