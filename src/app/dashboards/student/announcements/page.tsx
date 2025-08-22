@@ -469,24 +469,24 @@ const StudentAnnouncementsPage: React.FC = () => {
                         </div>
 
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                          {announcement.title}
+                          {announcement.title || 'Untitled Announcement'}
                         </h3>
 
                         <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                          {announcement.content}
+                          {announcement.content || 'No content available'}
                         </p>
 
                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1">
                               <User className="w-4 h-4" />
-                              {announcement.author.full_name}
+                              {announcement.author?.full_name || announcement.author?.name || 'Admin'}
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
                               {formatAnnouncementDate(announcement.publishDate)}
                             </span>
-                            {announcement.viewCount > 0 && (
+                            {announcement.viewCount && announcement.viewCount > 0 && (
                               <span className="flex items-center gap-1">
                                 <Eye className="w-4 h-4" />
                                 {announcement.viewCount} views
