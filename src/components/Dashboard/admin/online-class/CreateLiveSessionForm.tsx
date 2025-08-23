@@ -1075,8 +1075,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     
     try {
       console.log('🚀 Fetching latest session for student:', studentId);
+      console.log('🔗 API URL being called:', `/live-sessions/students/${studentId}/latest-session`);
+      
       const response = await liveClassesAPI.getStudentLatestSession(studentId);
       console.log('📥 API Response:', response);
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response data:', response.data);
       
       if (response.data && response.data.data) {
         const sessionData = response.data.data;

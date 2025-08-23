@@ -335,11 +335,11 @@ export const liveClassesAPI = {
   // Get student's latest session
   getStudentLatestSession: async (studentId: string) => {
     console.log('🌐 API Call: getStudentLatestSession for student:', studentId);
-    const url = `/live-sessions/students/${studentId}/latest-session`;
-    console.log('🔗 Next.js API Route URL:', url);
+    const url = `/live-classes/students/${studentId}/latest-session`;
+    console.log('🔗 Direct Backend URL:', url);
     
     try {
-      const response = await liveSessionsApiClient.get<{
+      const response = await liveClassesApiClient.get<{
         sessionTitle: string;
         sessionNo: string;
         status: string;
