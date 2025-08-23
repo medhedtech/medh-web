@@ -322,6 +322,58 @@ export const liveClassesAPI = {
     }
   },
 
+  // Generate fresh signed video URL
+  generateSignedVideoUrl: async (videoPath: string) => {
+    console.log('🔄 Generating fresh signed URL for video path:', videoPath);
+    try {
+      const response = await liveClassesApiClient.post<{
+        status: string;
+        data: {
+          signedUrl: string;
+          expiresIn: number;
+          videoPath: string;
+        };
+      }>('/live-classes/generate-signed-url', {
+        videoPath: videoPath
+      });
+      console.log('✅ Fresh signed URL response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error generating fresh signed URL:', error);
+      throw error;
+    }
+  },
+
+  // Get video by batch, student, and session from S3 bucket structure
+  getVideoByBatchStudentSession: async (batchId: string, studentId: string, sessionNo: string) => {
+    console.log(`🔄 Fetching video from S3 - Batch: ${batchId}, Student: ${studentId}, Session: ${sessionNo}`);
+    try {
+      const response = await liveClassesApiClient.get<{
+        status: string;
+        data: {
+          signedUrl: string;
+          videoMetadata: {
+            fileName: string;
+            fileSize: number;
+            lastModified: Date;
+            s3Key: string;
+            folderPath: string;
+          };
+          expiresIn: number;
+          batchId: string;
+          studentId: string;
+          sessionNo: string;
+          studentName: string;
+        };
+      }>(`/live-classes/video/${batchId}/${studentId}/${sessionNo}`);
+      console.log('✅ S3 video fetch response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error fetching video from S3:', error);
+      throw error;
+    }
+  },
+
   // Update session
   updateSession: async (sessionId: string, sessionData: Partial<ICreateLiveSessionRequest>) => {
     return liveClassesApiClient.put<{ success: boolean }>(`/live-classes/sessions/${sessionId}`, sessionData);
