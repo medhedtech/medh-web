@@ -573,6 +573,9 @@ const VideoPlayerPage: React.FC = () => {
           const s3Response = await liveClassesAPI.getVideoByBatchStudentSession(batchId, studentId, sessionNo);
           
           console.log('🔍 S3 fresh fetch response:', s3Response);
+
+
+          
           
           // Handle double-nested response structure
           const s3Data = s3Response.data?.data || s3Response.data;
