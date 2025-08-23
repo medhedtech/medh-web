@@ -29,15 +29,38 @@ export async function GET(
     console.log('🔍 Fetching recorded lessons for student:', studentId);
     console.log('🌐 Using BASE_URL:', BASE_URL);
     
+    // Extract authentication headers from the request
+    const authHeader = request.headers.get('authorization');
+    const accessToken = request.headers.get('x-access-token');
+    
+    console.log('🔐 Auth header present:', !!authHeader);
+    console.log('🔑 Access token present:', !!accessToken);
+    console.log('🔐 Auth header value:', authHeader ? authHeader.substring(0, 20) + '...' : 'null');
+    console.log('🔑 Access token value:', accessToken ? accessToken.substring(0, 20) + '...' : 'null');
+    
+    // Log all headers for debugging
+    console.log('📋 All request headers:', Object.fromEntries(request.headers.entries()));
+    
+    // Prepare headers for backend request
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Add authentication headers if present
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+    if (accessToken) {
+      headers['x-access-token'] = accessToken;
+    }
+    
     // Fetch recorded lessons from backend
     const backendUrl = `${BASE_URL}/batches/students/${studentId}/recorded-lessons`;
     console.log('🔗 Backend URL:', backendUrl);
     
     const response = await fetch(backendUrl, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       credentials: 'include',
     });
 

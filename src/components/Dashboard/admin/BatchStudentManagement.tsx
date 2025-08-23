@@ -15,7 +15,8 @@ import {
   Edit3,
   Trash2,
   Download,
-  Upload
+  Upload,
+  RefreshCw
 } from 'lucide-react';
 import { showToast } from '@/utils/toastManager';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,6 +27,8 @@ import {
   type TEnrollmentStatus,
   type IBatchWithDetails
 } from '@/apis/instructor-assignments';
+import { liveClassesAPI } from '@/apis/liveClassesAPI';
+import { getAuthToken, isAuthenticated } from '@/utils/auth';
 
 interface IStudent {
   _id: string;
@@ -55,6 +58,9 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<IStudent | null>(null);
   const [showStudentDetails, setShowStudentDetails] = useState(false);
+  const [currentBatchCapacity, setCurrentBatchCapacity] = useState(batch.capacity || 0);
+  const [currentEnrolledCount, setCurrentEnrolledCount] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Status colors
   const statusColors: Record<TEnrollmentStatus, string> = {
@@ -120,15 +126,110 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
     loadStudents();
   }, [batch._id]);
 
+  // Update enrolled count when students array changes
+  useEffect(() => {
+    setCurrentEnrolledCount(students.length);
+  }, [students]);
+
   const loadStudents = async () => {
     try {
       setLoading(true);
-      // In a real app, these would be actual API calls
-      setStudents(mockEnrolledStudents);
-      setAvailableStudents(mockAvailableStudents);
+      
+      // Fetch all students from the student collection
+      console.log('🔍 Fetching all students for enrollment...');
+      const response = await liveClassesAPI.getStudents();
+      console.log('📥 Students API Response:', response);
+      
+      if (response.data && response.data.data) {
+        const allStudents = response.data.data;
+        console.log('📋 Total students found:', allStudents.length);
+        
+        // Transform the data to match our interface
+        const transformedStudents: IStudent[] = allStudents.map((student: any) => ({
+          _id: student._id,
+          full_name: student.full_name || 'Unknown Student',
+          email: student.email || 'no-email@example.com',
+          phone_number: student.phone_numbers?.[0]?.number || '',
+          role: student.role || ['Student'],
+          status: 'active' as TEnrollmentStatus
+        }));
+        
+                 // Now fetch enrolled students for this batch using the correct API
+         console.log('🔍 Fetching enrolled students for batch:', batch._id);
+         try {
+           // Use the correct API endpoint for batch students
+           const enrolledResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/enrollments/batches/${batch._id}/students`, {
+             headers: {
+               'Content-Type': 'application/json',
+               'Authorization': `Bearer ${getAuthToken()}`
+             }
+           });
+           
+           if (enrolledResponse.ok) {
+             const responseData = await enrolledResponse.json();
+             console.log('📥 Enrolled students API Response:', responseData);
+             
+             if (responseData.success && responseData.students && responseData.students.data) {
+               const enrolledStudents = responseData.students.data;
+               console.log('📋 Enrolled students found:', enrolledStudents.length);
+               
+               // Transform enrolled students
+               const transformedEnrolledStudents: IStudent[] = enrolledStudents.map((enrollment: any) => ({
+                 _id: enrollment.student._id,
+                 full_name: enrollment.student.full_name || 'Unknown Student',
+                 email: enrollment.student.email || 'no-email@example.com',
+                 phone_number: enrollment.student.phone_numbers?.[0]?.number || '',
+                 role: ['Student'],
+                 enrollment_date: enrollment.enrollmentDate,
+                 status: enrollment.status || 'active',
+                 enrollment_id: enrollment.enrollmentId
+               }));
+               
+               // Filter out enrolled students from available students
+               const enrolledStudentIds = transformedEnrolledStudents.map(s => s._id);
+               const availableStudents = transformedStudents.filter(student => !enrolledStudentIds.includes(student._id));
+               
+               setStudents(transformedEnrolledStudents);
+               setAvailableStudents(availableStudents);
+               setCurrentEnrolledCount(transformedEnrolledStudents.length);
+               
+               console.log('✅ Students loaded successfully:', {
+                 enrolled: transformedEnrolledStudents.length,
+                 available: availableStudents.length
+               });
+             } else {
+               // No enrolled students found, show all as available
+               setStudents([]);
+               setAvailableStudents(transformedStudents);
+               setCurrentEnrolledCount(0);
+               console.log('✅ No enrolled students found, all students available');
+             }
+           } else {
+             console.log('⚠️ Could not fetch enrolled students, showing all as available');
+             // Fallback: show all students as available
+             setStudents([]);
+             setAvailableStudents(transformedStudents);
+             setCurrentEnrolledCount(0);
+           }
+         } catch (enrollmentError) {
+           console.log('⚠️ Could not fetch enrolled students, showing all as available:', enrollmentError);
+           // Fallback: show all students as available
+           setStudents([]);
+           setAvailableStudents(transformedStudents);
+           setCurrentEnrolledCount(0);
+         }
+      } else {
+        console.log('❌ No students data found');
+        setAvailableStudents([]);
+        setStudents([]);
+        setCurrentEnrolledCount(0);
+      }
     } catch (error) {
-      console.error('Error loading students:', error);
+      console.error('❌ Error loading students:', error);
       showToast.error('Failed to load students');
+      setAvailableStudents([]);
+      setStudents([]);
+      setCurrentEnrolledCount(0);
     } finally {
       setLoading(false);
     }
@@ -136,24 +237,95 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
 
   const handleEnrollStudent = async (studentId: string) => {
     try {
-      // In a real app, this would be an actual API call
-      // await enrollmentAPI.enrollStudent(studentId, {
-      //   courseId: batch.course,
-      //   batchId: batch._id!,
-      //   enrollment_type: 'batch'
-      // });
-
-      // Move student from available to enrolled
-      const student = availableStudents.find(s => s._id === studentId);
-      if (student) {
-        setStudents(prev => [...prev, { ...student, enrollment_date: new Date().toISOString(), status: 'active' }]);
-        setAvailableStudents(prev => prev.filter(s => s._id !== studentId));
-        showToast.success(`${student.full_name} enrolled successfully`);
-        onStudentUpdate();
+      // Check if user is authenticated
+      if (!isAuthenticated()) {
+        console.log('❌ User not authenticated');
+        showToast.error('Please log in to enroll students');
+        return;
       }
-    } catch (error) {
-      console.error('Error enrolling student:', error);
-      showToast.error('Failed to enroll student');
+
+      const token = getAuthToken();
+      console.log('🔐 Auth token available:', !!token);
+      console.log('🎯 Enrolling student:', studentId, 'in batch:', batch._id);
+      
+      // Make real API call to enroll student
+      const response = await enrollmentAPI.enrollStudent(studentId, {
+        courseId: batch.course,
+        batchId: batch._id!,
+        enrollment_type: 'batch'
+      });
+      
+      console.log('✅ Enrollment API Response:', response);
+      
+      // Use real enrollment data from API response
+      if (response.data && response.data.data && response.data.data.enrollment) {
+        const enrollmentData = response.data.data.enrollment;
+        const batchData = response.data.data.batch;
+        
+        console.log('📊 Enrollment data received:', enrollmentData);
+        console.log('📊 Updated batch data:', batchData);
+        
+        // Move student from available to enrolled with real data
+        const student = availableStudents.find(s => s._id === studentId);
+        if (student) {
+          const enrolledStudent = {
+            ...student,
+            enrollment_date: enrollmentData.enrollment_date,
+            status: enrollmentData.status || 'active',
+            enrollment_id: enrollmentData._id
+          };
+          
+                     // Immediately update UI with the enrolled student
+           setStudents(prev => [...prev, enrolledStudent]);
+           setAvailableStudents(prev => prev.filter(s => s._id !== studentId));
+           setCurrentEnrolledCount(prev => prev + 1);
+           showToast.success(`✅ ${student.full_name} enrolled successfully!`);
+           
+           // Update batch capacity info if provided
+           if (batchData) {
+             console.log('🔄 Updating batch capacity:', {
+               enrolled: batchData.enrolled_students,
+               capacity: batchData.capacity
+             });
+             setCurrentBatchCapacity(batchData.capacity);
+             setCurrentEnrolledCount(batchData.enrolled_students);
+           }
+           
+           onStudentUpdate();
+           
+           // Refresh the student list after a short delay to ensure data consistency
+           setTimeout(() => {
+             loadStudents();
+           }, 2000);
+        }
+      } else {
+        console.log('⚠️ No enrollment data in response, using fallback');
+                 // Fallback to previous logic
+         const student = availableStudents.find(s => s._id === studentId);
+         if (student) {
+           setStudents(prev => [...prev, { ...student, enrollment_date: new Date().toISOString(), status: 'active' }]);
+           setAvailableStudents(prev => prev.filter(s => s._id !== studentId));
+           setCurrentEnrolledCount(prev => prev + 1);
+           showToast.success(`✅ ${student.full_name} enrolled successfully!`);
+           onStudentUpdate();
+           
+           // Refresh the student list after a short delay to ensure data consistency
+           setTimeout(() => {
+             loadStudents();
+           }, 2000);
+         }
+      }
+    } catch (error: any) {
+      console.error('❌ Error enrolling student:', error);
+      
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        showToast.error('Authentication required. Please log in again.');
+      } else if (error.response?.status === 404) {
+        showToast.error('Student not found. Please refresh and try again.');
+      } else {
+        showToast.error('Failed to enroll student. Please try again.');
+      }
     }
   };
 
@@ -171,6 +343,7 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       if (student) {
         setAvailableStudents(prev => [...prev, { ...student, enrollment_date: undefined, status: 'active' }]);
         setStudents(prev => prev.filter(s => s._id !== studentId));
+        setCurrentEnrolledCount(prev => prev - 1);
         showToast.success(`${studentName} unenrolled successfully`);
         onStudentUpdate();
       }
@@ -218,13 +391,34 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Enrolled Students ({students.length}/{batch.capacity})
+            Enrolled Students ({currentEnrolledCount}/{currentBatchCapacity})
+            {isRefreshing && (
+              <span className="ml-2 text-sm text-blue-600 dark:text-blue-400">
+                <RefreshCw className="inline h-4 w-4 animate-spin mr-1" />
+                Refreshing...
+              </span>
+            )}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Manage student enrollments for {batch.batch_name}
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              setIsRefreshing(true);
+              setLoading(true);
+              loadStudents().finally(() => {
+                setIsRefreshing(false);
+                setLoading(false);
+              });
+            }}
+            disabled={loading || isRefreshing}
+            className="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+            title="Refresh student list"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading || isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
           <button
             onClick={() => setShowEnrollModal(true)}
             className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

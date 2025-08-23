@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import StudentDashboardLayout from "@/components/sections/dashboards/StudentDashboardLayout";
+import { apiBaseUrl } from "@/apis/config";
 
 interface BatchVideo {
   _id: string;
@@ -98,17 +99,40 @@ const BatchVideosPage: React.FC = () => {
 
       // Get token for authentication
       const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      console.log('🔑 Token from localStorage:', token ? token.substring(0, 20) + '...' : 'null');
+      console.log('🔑 Token length:', token ? token.length : 0);
+      
       if (!token) {
         setError('Authentication token not found. Please log in again.');
         return;
       }
 
-      // Fetch batch videos for specific batch using Next.js API route
-      const response = await fetch(`/api/v1/batches/test-students/${studentId}/batch/${batchId}/recorded-lessons`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      // Prepare headers
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-access-token': token
+      };
+      
+      console.log('📤 Sending headers:', {
+        'Content-Type': headers['Content-Type'],
+        'Authorization': headers['Authorization'] ? headers['Authorization'].substring(0, 20) + '...' : 'null',
+        'x-access-token': headers['x-access-token'] ? headers['x-access-token'].substring(0, 20) + '...' : 'null'
       });
+      
+      // Fetch batch videos directly from backend with query parameters
+      const queryParams = new URLSearchParams({
+        limit: '100',
+        sort_by: 'date',
+        sort_order: 'desc'
+      });
+      
+      const response = await fetch(`${apiBaseUrl}/batches/students/${studentId}/recorded-lessons?${queryParams}`, {
+        headers
+      });
+      
+      console.log('🔍 Response status:', response.status);
+      console.log('🔍 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         throw new Error(`Failed to fetch videos: ${response.status}`);
@@ -116,12 +140,69 @@ const BatchVideosPage: React.FC = () => {
 
       const data = await response.json();
       console.log('📊 API Response:', data);
+      console.log('📊 Response success:', data.success);
+      console.log('📊 Response data keys:', data.data ? Object.keys(data.data) : 'No data');
+      console.log('📊 Batch sessions count:', data.data?.batch_sessions?.batches?.length || 0);
+      console.log('🔍 Looking for batchId:', batchId);
+      console.log('📋 Available batches:', data.data?.batch_sessions?.batches?.map((b: any) => ({ id: b.batch_id, name: b.batch_name })) || 'No batches found');
+      
+      // Log the full structure to understand the data format
+      console.log('🔍 Full data structure:', JSON.stringify(data, null, 2));
+      
+      // Log all available batch IDs for debugging
+      if (data.data?.batch_sessions?.batches) {
+        console.log('🔍 All available batch IDs:', data.data.batch_sessions.batches.map((b: any) => ({
+          batch_id: b.batch_id,
+          _id: b._id,
+          id: b.id,
+          batchId: b.batchId,
+          name: b.batch_name
+        })));
+      }
       
       if (data.success && data.data?.batch_sessions?.batches) {
-        // Find the specific batch
+        // Find the specific batch - try multiple possible field names
         const targetBatch = data.data.batch_sessions.batches.find(
-          (batch: any) => batch.batch_id === batchId
+          (batch: any) => 
+            batch.batch_id === batchId || 
+            batch._id === batchId || 
+            batch.id === batchId ||
+            batch.batchId === batchId
         );
+        
+        console.log('🎯 Target batch found:', targetBatch ? 'Yes' : 'No');
+        if (targetBatch) {
+          console.log('🎯 Target batch details:', {
+            batch_id: targetBatch.batch_id,
+            batch_name: targetBatch.batch_name,
+            sessions_count: targetBatch.sessions?.length || 0
+          });
+        } else {
+          console.log('❌ Batch not found. Looking for:', batchId);
+          console.log('❌ Available batch IDs:', data.data.batch_sessions.batches.map((b: any) => ({
+            batch_id: b.batch_id,
+            _id: b._id,
+            id: b.id,
+            batchId: b.batchId,
+            name: b.batch_name
+          })));
+          
+          // Try to find any batch that contains the batchId as a substring
+          const partialMatch = data.data.batch_sessions.batches.find((batch: any) => 
+            batch.batch_id?.includes(batchId) || 
+            batch._id?.includes(batchId) || 
+            batch.id?.includes(batchId) ||
+            batch.batchId?.includes(batchId)
+          );
+          
+          if (partialMatch) {
+            console.log('🔍 Found partial match:', {
+              batch_id: partialMatch.batch_id,
+              _id: partialMatch._id,
+              name: partialMatch.batch_name
+            });
+          }
+        }
 
         if (targetBatch) {
           setBatchInfo({
@@ -163,7 +244,50 @@ const BatchVideosPage: React.FC = () => {
           allVideos.sort((a, b) => a.sessionNumber - b.sessionNumber);
           setVideos(allVideos);
         } else {
-          setError('Batch not found or no videos available');
+          // If specific batch not found, show all available videos for debugging
+          console.log('⚠️ Specific batch not found, showing all available videos for debugging');
+          const allVideos: BatchVideo[] = [];
+          
+          data.data.batch_sessions.batches.forEach((batch: any) => {
+            console.log(`📋 Processing batch: ${batch.batch_name} (ID: ${batch.batch_id})`);
+            if (batch.sessions) {
+              batch.sessions.forEach((session: any) => {
+                if (session.recorded_lessons) {
+                  session.recorded_lessons.forEach((lesson: any) => {
+                    const videoData = {
+                      _id: lesson._id,
+                      title: lesson.title,
+                      sessionNumber: session.session_number || 1,
+                      sessionTitle: session.session_title || lesson.title,
+                      date: session.session_date || lesson.recorded_date,
+                      duration: session.session_duration,
+                      instructor: session.instructor || batch.instructor,
+                      video_url: lesson.url || lesson.video_url,
+                      fileSize: lesson.fileSize,
+                      session_id: session.session_id,
+                      description: session.session_description || lesson.description,
+                      student_name: lesson.student_name || 'Student'
+                    };
+                    allVideos.push(videoData);
+                  });
+                }
+              });
+            }
+          });
+          
+          if (allVideos.length > 0) {
+            console.log(`📹 Found ${allVideos.length} total videos across all batches`);
+            setVideos(allVideos);
+            setBatchInfo({
+              batch_id: batchId,
+              batch_name: `All Available Videos (Batch ${batchId} not found)`,
+              instructor: { full_name: 'Multiple Instructors', email: '' },
+              total_videos: allVideos.length,
+              description: 'Showing all available videos since specific batch was not found'
+            });
+          } else {
+            setError('Batch not found and no videos available');
+          }
         }
       } else {
         setError('No videos found for this batch');
