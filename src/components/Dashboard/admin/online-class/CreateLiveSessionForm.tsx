@@ -101,6 +101,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   const [instructors, setInstructors] = useState<IInstructor[]>([]); // Add instructors state
   const [selectedStudentLatestSession, setSelectedStudentLatestSession] = useState<any>(null); // Latest session for selected student
   const [loadingLatestSession, setLoadingLatestSession] = useState(false); // Loading state for latest session
+  const [previousSession, setPreviousSession] = useState<any>(null); // Previous session data
 
   // Refs
   const studentDropdownRef = useRef<HTMLDivElement>(null);
@@ -644,7 +645,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   const loadInitialData = async () => {
     try {
       console.log('🔄 Loading initial data...');
-      console.log('📡 Making API calls to fetch real data from database...');
+      setLoading(true);
       
       // Load data from API with better error handling
       const [studentsRes, gradesRes, dashboardsRes, instructorsRes, batchesRes] = await Promise.allSettled([
@@ -655,270 +656,93 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         liveClassesAPI.getAllBatches()
       ]);
 
-      console.log('API Responses:', {
-        students: studentsRes,
-        grades: gradesRes,
-        dashboards: dashboardsRes,
-        instructors: instructorsRes,
-        batches: batchesRes
-      });
+      console.log('📊 API Responses received');
 
-      // Handle different response structures more robustly
-      let finalStudents: any[] = [];
-      if (studentsRes.status === 'fulfilled' && studentsRes.value.data) {
-        const extractedStudents = studentsRes.value.data?.data?.items || 
-                                 studentsRes.value.data?.items || 
-                                 studentsRes.value.data || [];
-        finalStudents = Array.isArray(extractedStudents) ? extractedStudents : [];
+      // Process students data
+      let finalStudents: IStudent[] = [];
+      if (studentsRes.status === 'fulfilled' && studentsRes.value?.data) {
+        const response = studentsRes.value.data;
+        finalStudents = response?.data?.items || response?.items || response || [];
+        console.log('✅ Students loaded:', finalStudents.length);
+      } else {
+        console.error('❌ Students API failed:', studentsRes.reason);
       }
 
-      let finalGrades: any[] = [];
-      if (gradesRes.status === 'fulfilled' && gradesRes.value.data) {
-        const extractedGrades = gradesRes.value.data?.data || gradesRes.value.data || [];
-        finalGrades = Array.isArray(extractedGrades) ? extractedGrades : [];
+      // Process grades data
+      let finalGrades: IGrade[] = [];
+      if (gradesRes.status === 'fulfilled' && gradesRes.value?.data) {
+        const response = gradesRes.value.data;
+        finalGrades = response?.data || response || [];
+        console.log('✅ Grades loaded:', finalGrades.length);
+      } else {
+        console.error('❌ Grades API failed:', gradesRes.reason);
       }
 
-      let finalDashboards: any[] = [];
-      if (dashboardsRes.status === 'fulfilled' && dashboardsRes.value.data) {
-        const extractedDashboards = dashboardsRes.value.data?.data || dashboardsRes.value.data || [];
-        finalDashboards = Array.isArray(extractedDashboards) ? extractedDashboards : [];
+      // Process dashboards data
+      let finalDashboards: IDashboard[] = [];
+      if (dashboardsRes.status === 'fulfilled' && dashboardsRes.value?.data) {
+        const response = dashboardsRes.value.data;
+        finalDashboards = response?.data || response || [];
+        console.log('✅ Dashboards loaded:', finalDashboards.length);
+      } else {
+        console.error('❌ Dashboards API failed:', dashboardsRes.reason);
       }
 
-      let finalBatches: any[] = [];
-      if (batchesRes.status === 'fulfilled' && batchesRes.value.data) {
-        const extractedBatches = batchesRes.value.data?.data || batchesRes.value.data || [];
-        finalBatches = Array.isArray(extractedBatches) ? extractedBatches : [];
-      }
-
+      // Process instructors data
       let finalInstructors: IInstructor[] = [];
-      if (instructorsRes.status === 'fulfilled' && instructorsRes.value.data) {
-        const extracted = instructorsRes.value.data?.data?.items || instructorsRes.value.data?.items || instructorsRes.value.data || [];
-        finalInstructors = Array.isArray(extracted) ? extracted : [];
-      }
-
-
-      
-      console.log('🔧 FORCED DATA EXTRACTION:', {
-        studentsResStatus: studentsRes.status,
-        studentsResData: studentsRes.status === 'fulfilled' ? studentsRes.value.data : 'rejected',
-        finalStudentsLength: finalStudents.length,
-        finalStudentsSample: Array.isArray(finalStudents) ? finalStudents.slice(0, 2) : 'Not array'
-      });
-
-      console.log('🔍 Raw API Response Details:', {
-        studentsRes: studentsRes.status === 'fulfilled' ? {
-          status: studentsRes.value.status,
-          data: studentsRes.value.data,
-          hasItems: !!studentsRes.value.data?.data?.items,
-          itemsCount: studentsRes.value.data?.data?.items?.length || 0
-        } : studentsRes.reason
-      });
-
-      console.log('Raw API Responses:', {
-        studentsRes: studentsRes.status === 'fulfilled' ? studentsRes.value : studentsRes.reason,
-        gradesRes: gradesRes.status === 'fulfilled' ? gradesRes.value : gradesRes.reason,
-        dashboardsRes: dashboardsRes.status === 'fulfilled' ? dashboardsRes.value : dashboardsRes.reason
-      });
-
-      console.log('Processed Data:', {
-        students: finalStudents,
-        grades: finalGrades,
-        dashboards: finalDashboards,
-        batches: finalBatches
-      });
-
-
-
-      // Use the forced extraction results
-      const hasRealStudents = Array.isArray(finalStudents) && finalStudents.length > 0;
-      const hasRealGrades = Array.isArray(finalGrades) && finalGrades.length > 0;
-      const hasRealDashboards = Array.isArray(finalDashboards) && finalDashboards.length > 0;
-      const hasRealBatches = Array.isArray(finalBatches) && finalBatches.length > 0;
-      const hasRealInstructors = Array.isArray(finalInstructors) && finalInstructors.length > 0;
-      
-      console.log('🎯 FINAL Data Availability Check:', {
-        hasRealStudents,
-        hasRealGrades,
-        hasRealDashboards,
-        hasRealBatches,
-        hasRealInstructors,
-        finalStudentsLength: finalStudents.length,
-        finalGradesLength: finalGrades.length,
-        finalBatchesLength: finalBatches.length
-      });
-      
-      // Use fallback data if no real data is available
-      if (!hasRealGrades) {
-        finalGrades = [];
-      }
-      if (!hasRealDashboards) {
-        finalDashboards = [];
-      }
-      
-      // Deduplicate grades by _id to prevent duplicate key errors
-      if (hasRealGrades && Array.isArray(finalGrades)) {
-        const uniqueGrades = finalGrades.filter((grade, index, self) => 
-          index === self.findIndex(g => g._id === grade._id)
-        );
-        if (uniqueGrades.length !== finalGrades.length) {
-          console.log('🔧 Removed duplicate grades:', finalGrades.length - uniqueGrades.length);
-        }
-        finalGrades = uniqueGrades;
-      }
-      
-      // Deduplicate dashboards by _id to prevent duplicate key errors
-      if (hasRealDashboards && Array.isArray(finalDashboards)) {
-        const uniqueDashboards = finalDashboards.filter((dashboard, index, self) => 
-          index === self.findIndex(d => d._id === dashboard._id)
-        );
-        if (uniqueDashboards.length !== finalDashboards.length) {
-          console.log('🔧 Removed duplicate dashboards:', finalDashboards.length - uniqueDashboards.length);
-        }
-        finalDashboards = uniqueDashboards;
-      }
-      
-      // Use real data from database, with fallbacks for students and instructors
-      if (!hasRealStudents) {
-        console.log('❌ NO REAL STUDENTS DATA - Using fallback data');
-        // Add fallback student data from the database test
-        finalStudents = [
-          { _id: '689ba08c5eba793ac7f42a4e', full_name: 'Alice Johnson', email: 'alice.johnson@example.com' },
-          { _id: '689ba08c5eba793ac7f42a51', full_name: 'Bob Smith', email: 'bob.smith@example.com' },
-          { _id: '689ba08c5eba793ac7f42a54', full_name: 'Carol Davis', email: 'carol.davis@example.com' },
-          { _id: '689ba08c5eba793ac7f42a58', full_name: 'David Wilson', email: 'david.wilson@example.com' },
-          { _id: '689ba08c5eba793ac7f42a5b', full_name: 'Eva Brown', email: 'eva.brown@example.com' }
-        ];
+      if (instructorsRes.status === 'fulfilled' && instructorsRes.value?.data) {
+        const response = instructorsRes.value.data;
+        finalInstructors = response?.data?.items || response?.items || response || [];
+        console.log('✅ Instructors loaded:', finalInstructors.length);
       } else {
-        console.log('✅ REAL STUDENTS LOADED:', finalStudents.length, 'students');
-        // Deduplicate students by _id to prevent duplicate key errors
-        const uniqueStudents = finalStudents.filter((student, index, self) => 
-          index === self.findIndex(s => s._id === student._id)
-        );
-        if (uniqueStudents.length !== finalStudents.length) {
-          console.log('🔧 Removed duplicate students:', finalStudents.length - uniqueStudents.length);
-        }
-        finalStudents = uniqueStudents;
+        console.error('❌ Instructors API failed:', instructorsRes.reason);
       }
-      
-      // Instructors fallback/dedupe
-      if (!hasRealInstructors) {
-        console.log('❌ NO REAL INSTRUCTORS DATA - Using fallback data');
-        finalInstructors = [
-          { _id: 'instructor-1', full_name: 'Prof. Alice', email: 'alice@example.com' } as IInstructor,
-          { _id: 'instructor-2', full_name: 'Dr. Robert', email: 'robert@example.com' } as IInstructor
-        ];
+
+      // Process batches data
+      let finalBatches: IBatch[] = [];
+      if (batchesRes.status === 'fulfilled' && batchesRes.value?.data) {
+        const response = batchesRes.value.data;
+        finalBatches = response?.data || response || [];
+        console.log('✅ Batches loaded:', finalBatches.length);
       } else {
-        const uniqueInstructors = finalInstructors.filter((i, idx, self) => idx === self.findIndex(x => x._id === i._id));
-        if (uniqueInstructors.length !== finalInstructors.length) {
-          console.log('🔧 Removed duplicate instructors:', finalInstructors.length - uniqueInstructors.length);
-        }
-        finalInstructors = uniqueInstructors;
+        console.error('❌ Batches API failed:', batchesRes.reason);
       }
-      
-      console.log('🎯 Setting final data:', {
-        students: { count: finalStudents.length, sample: finalStudents[0] },
-        grades: { count: finalGrades.length, sample: finalGrades[0] },
-        dashboards: { count: finalDashboards.length, sample: finalDashboards[0] },
-        instructors: { count: finalInstructors.length, sample: finalInstructors[0] }
-      });
-      
-      console.log('🎯 About to set state with:', {
-        finalStudentsLength: finalStudents.length,
-        finalStudentsSample: Array.isArray(finalStudents) ? finalStudents.slice(0, 2) : 'Not array'
-      });
-      
-      // Check if we got any real data
-      const hasRealData = finalStudents.length > 0 || finalDashboards.length > 0 || finalGrades.length > 0 || finalBatches.length > 0 || finalInstructors.length > 0;
-      
-      if (hasRealData) {
-        // Set the real data to state
+
+      // Ensure all arrays are valid
+      finalStudents = Array.isArray(finalStudents) ? finalStudents : [];
+      finalGrades = Array.isArray(finalGrades) ? finalGrades : [];
+      finalDashboards = Array.isArray(finalDashboards) ? finalDashboards : [];
+      finalInstructors = Array.isArray(finalInstructors) ? finalInstructors : [];
+      finalBatches = Array.isArray(finalBatches) ? finalBatches : [];
+
+      // Set data to state
       setStudents(finalStudents);
       setGrades(finalGrades);
       setDashboards(finalDashboards);
       setInstructors(finalInstructors);
       setBatches(finalBatches);
       setUsingFallbackData(false);
-        console.log('🎉 Using real data from database');
-      } else {
-        console.log('⚠️ No real data received, using fallback data');
-        // Create fallback data for testing
-        const fallbackStudents = [
-          { _id: 'student-1', full_name: 'John Doe', email: 'john@example.com' },
-          { _id: 'student-2', full_name: 'Jane Smith', email: 'jane@example.com' },
-          { _id: 'student-3', full_name: 'Bob Johnson', email: 'bob@example.com' }
-        ];
-        const fallbackBatches = [
-          { _id: 'batch-1', batch_name: 'AI & Data Science - Batch A', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-2'] },
-          { _id: 'batch-2', batch_name: 'Digital Marketing - Batch B', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-2', 'student-3'] },
-          { _id: 'batch-3', batch_name: 'Personality Development - Batch C', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-3'] },
-          { _id: 'batch-4', batch_name: 'Vedic Mathematics - Batch D', batch_type: 'beginner', status: 'Active', enrolled_student_ids: ['student-1', 'student-2', 'student-3'] },
-          { _id: 'batch-5', batch_name: 'Public Speaking - Batch E', batch_type: 'intermediate', status: 'Active', enrolled_student_ids: ['student-2'] },
-          { _id: 'batch-6', batch_name: 'Web Development - Batch F', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-1'] }
-        ];
-        const fallbackGrades = [
-          { _id: 'grade-1', name: 'Grade 1', level: 1 },
-          { _id: 'grade-2', name: 'Grade 2', level: 2 },
-          { _id: 'grade-3', name: 'Grade 3', level: 3 }
-        ];
-        const fallbackDashboards = [
-          { _id: 'admin-dashboard', name: 'Admin Dashboard', type: 'admin' },
-          { _id: 'instructor-dashboard', name: 'Instructor Dashboard', type: 'instructor' }
-        ];
-        
-        setStudents(fallbackStudents);
-        setBatches(fallbackBatches);
-        setGrades(fallbackGrades);
-        setDashboards(fallbackDashboards);
-        setPreviousSession(null);
-        setUsingFallbackData(true);
-      }
-      
-      console.log('🎯 FINAL RESULT - DATA LOADED:', {
-        students: `${finalStudents.length} students ${hasRealStudents ? '(real)' : '(fallback)'}`,
-        grades: hasRealGrades ? `${finalGrades.length} grades` : '❌ NO GRADES',
-        dashboards: hasRealDashboards ? `${finalDashboards.length} dashboards` : '❌ NO DASHBOARDS',
-        batches: hasRealBatches ? `${finalBatches.length} batches` : '❌ NO BATCHES',
-        instructors: hasRealInstructors ? `${finalInstructors.length} instructors` : '❌ NO INSTRUCTORS'
+
+      console.log('🎉 Data loaded successfully:', {
+        students: finalStudents.length,
+        grades: finalGrades.length,
+        dashboards: finalDashboards.length,
+        instructors: finalInstructors.length,
+        batches: finalBatches.length
       });
+
     } catch (error) {
       console.error('❌ Error loading initial data:', error);
-      console.log('🔄 Loading fallback data due to API error...');
       
-      // Provide fallback data when API fails
-      const fallbackStudents = [
-        { _id: 'student-1', full_name: 'John Doe', email: 'john@example.com' },
-        { _id: 'student-2', full_name: 'Jane Smith', email: 'jane@example.com' },
-        { _id: 'student-3', full_name: 'Bob Johnson', email: 'bob@example.com' }
-      ];
-      const fallbackBatches = [
-        { _id: 'batch-1', batch_name: 'AI & Data Science - Batch A', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-2'] },
-        { _id: 'batch-2', batch_name: 'Digital Marketing - Batch B', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-2', 'student-3'] },
-        { _id: 'batch-3', batch_name: 'Personality Development - Batch C', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-3'] },
-        { _id: 'batch-4', batch_name: 'Vedic Mathematics - Batch D', batch_type: 'beginner', status: 'Active', enrolled_student_ids: ['student-1', 'student-2', 'student-3'] },
-        { _id: 'batch-5', batch_name: 'Public Speaking - Batch E', batch_type: 'intermediate', status: 'Active', enrolled_student_ids: ['student-2'] },
-        { _id: 'batch-6', batch_name: 'Web Development - Batch F', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-1'] }
-      ];
-      const fallbackGrades = [
-        { _id: 'grade-1', name: 'Grade 1', level: 1 },
-        { _id: 'grade-2', name: 'Grade 2', level: 2 },
-        { _id: 'grade-3', name: 'Grade 3', level: 3 },
-        { _id: 'grade-4', name: 'Grade 4', level: 4 },
-        { _id: 'grade-5', name: 'Grade 5', level: 5 }
-      ];
-      const fallbackDashboards = [
-        { _id: 'admin-dashboard', name: 'Admin Dashboard', type: 'admin' },
-        { _id: 'instructor-dashboard', name: 'Instructor Dashboard', type: 'instructor' },
-        { _id: 'student-dashboard', name: 'Student Dashboard', type: 'student' }
-      ];
-      
-      setStudents(fallbackStudents);
-      setBatches(fallbackBatches);
-      setGrades(fallbackGrades);
-      setDashboards(fallbackDashboards);
-      setPreviousSession(null);
+      // Set empty arrays on error
+      setStudents([]);
+      setGrades([]);
+      setDashboards([]);
+      setInstructors([]);
+      setBatches([]);
       setUsingFallbackData(true);
-      
-      console.log('✅ Fallback data loaded successfully');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1427,6 +1251,18 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       instructorId: prev.instructorId.filter(id => id !== instructorId)
     }));
   };
+
+  // Add loading state display after all hooks are declared
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading form data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
