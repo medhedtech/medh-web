@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, HelpCircle, BookOpen, Users, Briefcase, Globe, CreditCard } from "lucide-react";
 
+
+
 interface FAQItem {
   question: string;
   answer: string;
