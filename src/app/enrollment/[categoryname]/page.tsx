@@ -33,7 +33,7 @@ import CourseCertificate from '@/components/sections/course-detailed/courseCerti
 import CourseRelated from '@/components/sections/course-detailed/courseRelated';
 
 // New Integrated Course Details Component
-import CourseDetailsPage from '@/components/pages/CourseDetailsPage';
+import CourseDetailsPage from '@/components/page-components/CourseDetailsPage';
 
 // API and utilities
 import { apiUrls, apiBaseUrl } from "@/apis";

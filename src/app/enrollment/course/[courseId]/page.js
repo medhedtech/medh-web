@@ -14,7 +14,7 @@ import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import ThemeController from "@/components/shared/others/ThemeController";
 
 // Course Components
-import CourseDetailsPage from '@/components/pages/CourseDetailsPage';
+import CourseDetailsPage from '@/components/page-components/CourseDetailsPage';
 import CourseFaq from '@/components/sections/course-detailed/courseFaq';
 import EnrollmentDetails from '@/components/sections/course-detailed/EnrollmentDetails';
 

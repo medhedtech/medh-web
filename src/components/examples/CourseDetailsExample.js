@@ -8,7 +8,7 @@ import {
   ChevronRight, 
   Info 
 } from 'lucide-react';
-import CourseDetailsPage from '../pages/CourseDetailsPage';
+import CourseDetailsPage from '../page-components/CourseDetailsPage';
 import { toast, Toaster } from 'react-hot-toast';
 
 export default function CourseDetailsExample() {
