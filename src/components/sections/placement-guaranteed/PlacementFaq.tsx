@@ -281,4 +281,4 @@ const PlacementFAQ: React.FC = () => {
   );
 };
 
-export { PlacementFAQ }; 
+export default PlacementFAQ; 

@@ -12,7 +12,7 @@ import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } fr
 import { authAPI, IChangePasswordData } from '@/apis/auth.api';
 import { apiClient } from '@/apis/apiClient';
 import { showToast } from '@/utils/toastManager';
-import ProfileCompletionBar from '@/components/ProfileCompletionBar';
+
 
 
 // Interfaces
@@ -70,11 +70,7 @@ interface ComprehensiveProfile {
       language: string;
       proficiency: string;
     }>;
-    occupation: string;
-    industry: string;
-    company: string;
-    experience_level: string;
-    annual_income_range: string;
+    
     education_level: string;
     institution_name: string;
     field_of_study: string;
@@ -283,6 +279,26 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     });
   };
 
+  // Helper function to format date for HTML date input (YYYY-MM-DD)
+  const formatDateForInput = (dateString: string | Date | null | undefined): string => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      
+      // Format as YYYY-MM-DD for HTML date input
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error('Error formatting date for input:', error);
+      return '';
+    }
+  };
+
   // Edit functions
   const handleEditProfile = () => {
     setEditData({
@@ -297,14 +313,9 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       timezone: profile?.basic_info.timezone || '',
       
       // Personal Details
-      date_of_birth: profile?.personal_details.date_of_birth || '',
+      date_of_birth: formatDateForInput(profile?.personal_details.date_of_birth),
       gender: profile?.personal_details.gender || '',
       nationality: profile?.personal_details.nationality || '',
-      occupation: profile?.personal_details.occupation || '',
-      industry: profile?.personal_details.industry || '',
-      company: profile?.personal_details.company || '',
-      experience_level: profile?.personal_details.experience_level || '',
-      annual_income_range: profile?.personal_details.annual_income_range || '',
       languages_spoken: profile?.personal_details.languages_spoken?.map(l => l.language) || [],
       interests: profile?.personal_details.interests || [],
       
@@ -323,10 +334,20 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       github_link: profile?.basic_info.github_link || '',
       portfolio_link: profile?.basic_info.portfolio_link || ''
     });
+    
+    // Debug: Log the edit data for date of birth
+    console.log('🔍 Edit Profile Debug:', {
+      profileDateOfBirth: profile?.personal_details.date_of_birth,
+      formattedDateOfBirth: formatDateForInput(profile?.personal_details.date_of_birth),
+      editDataDateOfBirth: editData.date_of_birth
+    });
+    
     setIsEditingProfile(true);
   };
 
   const handleSave = async () => {
+    console.log('🔄 Starting profile save...');
+    console.log('📝 Current editData:', editData);
     setSaving(true);
     try {
       // Prepare the data for API call
@@ -346,16 +367,30 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           date_of_birth: editData.date_of_birth,
           gender: editData.gender,
           nationality: editData.nationality,
-          occupation: editData.occupation,
-          industry: editData.industry,
-          company: editData.company,
-          experience_level: editData.experience_level,
-          annual_income_range: editData.annual_income_range,
           skills: editData.skills,
-          certifications: editData.certifications,
+          // Convert certifications to proper object structure
+          certifications: editData.certifications?.map((cert: string) => ({
+            name: cert,
+            issuer: 'Unknown',
+            year: new Date().getFullYear(),
+            is_verified: false
+          })),
           languages_spoken: editData.languages_spoken?.map((lang: string) => ({
             language: lang,
             proficiency: 'fluent' // Default proficiency, you can make this dynamic
+          })),
+          interests: editData.interests,
+          // Convert learning goals to proper object structure
+          learning_goals: editData.learning_goals?.map((goal: string) => ({
+            goal: goal,
+            priority: 'medium',
+            progress: 0
+          })),
+          // Convert preferred study times to proper object structure
+          preferred_study_times: editData.preferred_study_times?.map((time: string) => ({
+            day: 'monday', // Default to monday, you can make this dynamic
+            start_time: '09:00',
+            end_time: '11:00'
           }))
         },
         
@@ -376,17 +411,43 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         age: editData.age
       };
 
-      // Remove undefined values to avoid sending empty data
+      // Remove undefined and empty values to avoid sending empty data
       Object.keys(updateData).forEach(key => {
-        if (updateData[key as keyof typeof updateData] === undefined || updateData[key as keyof typeof updateData] === '') {
+        const value = updateData[key as keyof typeof updateData];
+        if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
           delete updateData[key as keyof typeof updateData];
         }
       });
 
-      console.log('Saving profile with data:', updateData);
+      // Clean up meta object - remove empty values
+      if (updateData.meta) {
+        Object.keys(updateData.meta).forEach(key => {
+          const value = updateData.meta[key];
+          if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
+            delete updateData.meta[key];
+          }
+        });
+        
+        // Remove meta object if it's empty
+        if (Object.keys(updateData.meta).length === 0) {
+          delete updateData.meta;
+        }
+      }
+
+              console.log('💾 Saving profile with data:', updateData);
+        console.log('🔗 API URL will be:', '/profile/me/comprehensive');
+        
+        // Debug: Log what fields are being sent vs what's in editData
+        console.log('🔍 Debug - EditData vs UpdateData:', {
+          editDataFields: Object.keys(editData),
+          updateDataFields: Object.keys(updateData),
+          metaFields: updateData.meta ? Object.keys(updateData.meta) : 'No meta object'
+        });
       
       // Make API call to update profile using comprehensive endpoint
       const response = await updateCurrentUserComprehensiveProfile(updateData);
+      
+      console.log('✅ API Response:', response);
       
       if (response.data) {
         showToast.dismiss(); // Dismiss any existing toasts
@@ -402,13 +463,22 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       }
       
     } catch (error: unknown) {
-      console.error('Error saving profile:', error);
+      console.error('❌ Error saving profile:', error);
       
       // Show specific error message
       let errorMessage = 'Failed to update profile. Please try again.';
       
       if (error instanceof Error) {
+        // Check for specific error types
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMessage = 'Unable to connect to server. Please check your internet connection and ensure the backend server is running.';
+        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          errorMessage = 'Authentication required. Please sign in again.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Profile endpoint not found. Please contact support.';
+        } else {
         errorMessage = error.message;
+        }
       } else if (typeof error === 'object' && error !== null) {
         const errorObj = error as any;
         errorMessage = errorObj?.response?.data?.message || 
@@ -421,6 +491,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           errorObj.response.data.errors.forEach((err: any) => {
             showToast.error(`${err.field}: ${err.message}`);
           });
+          return; // Don't show the generic error if we showed validation errors
         }
       }
       
@@ -535,11 +606,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               gender: apiData.personal_details?.gender || '',
               nationality: apiData.personal_details?.nationality || '',
               languages_spoken: apiData.personal_details?.languages_spoken || [],
-              occupation: apiData.personal_details?.occupation || '',
-              industry: apiData.personal_details?.industry || '',
-              company: apiData.personal_details?.company || '',
-              experience_level: apiData.personal_details?.experience_level || '',
-              annual_income_range: apiData.personal_details?.annual_income_range || '',
+
               education_level: apiData.personal_details?.education_level || '',
               institution_name: apiData.personal_details?.institution_name || '',
               field_of_study: apiData.personal_details?.field_of_study || '',
@@ -656,6 +723,20 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           
           setProfile(transformedProfile);
           
+          // Debug: Log the date of birth value
+          console.log('🔍 Date of Birth Debug:', {
+            raw: apiData.personal_details?.date_of_birth,
+            formatted: formatDateForInput(apiData.personal_details?.date_of_birth),
+            type: typeof apiData.personal_details?.date_of_birth
+          });
+          
+          // Debug: Log all personal details
+          console.log('🔍 Personal Details Debug:', {
+            personal_details: apiData.personal_details,
+            basic_info: apiData.basic_info,
+            meta: apiData.meta
+          });
+          
           // Show success message only if it's a manual refresh (not initial load)
           if (profile) {
             showToast.dismiss(); // Dismiss any existing toasts
@@ -688,9 +769,16 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
             window.location.href = "/login";
           }, 2000);
         } else {
+          // Check if it's a network/server error
+          if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) {
+            setError('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+            showToast.dismiss();
+            showToast.error('Server connection failed. Please try again later.');
+        } else {
           setError('Failed to load profile data. Please try again.');
-          showToast.dismiss(); // Dismiss any existing toasts
+            showToast.dismiss();
           showToast.error('Failed to refresh profile data. Please try again.');
+          }
         }
       } finally {
         setLoading(false);
@@ -1295,14 +1383,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           </div>
         </div>
 
-        {/* Profile Completion Progress Bar */}
-        <div className="px-3 sm:px-4 md:px-6 py-4">
-          <ProfileCompletionBar 
-            showDetails={true}
-            className="sticky top-20 z-10"
-            refreshTrigger={profile?.basic_info?.updated_at || profile?.basic_info?.profile_completion}
-          />
-        </div>
+
 
         {/* Enhanced Mobile-Optimized Tab Content with Gesture Support */}
         <div 
@@ -2347,28 +2428,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nationality</label>
                         <p className="text-gray-900 dark:text-white">{personal_details.nationality || 'Not specified'}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Occupation</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.occupation || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Industry</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.industry || 'Not specified'}</p>
-                      </div>
                     </div>
                     <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.company || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Experience Level</label>
-                        <p className="text-gray-900 dark:text-white capitalize">{personal_details.experience_level || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Annual Income Range</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.annual_income_range || 'Prefer not to say'}</p>
-                      </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Timezone</label>
                         <p className="text-gray-900 dark:text-white">{basic_info?.timezone || 'Not specified'}</p>
@@ -2941,86 +3002,10 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Occupation
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.occupation || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, occupation: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="e.g., Software Engineer"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Industry
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.industry || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, industry: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="e.g., Technology, Healthcare"
-                    />
-                  </div>
                 </div>
 
                 {/* Right Column */}
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Company
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.company || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, company: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="e.g., Google, Microsoft"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Experience Level
-                    </label>
-                    <select
-                      value={editData.experience_level || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, experience_level: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="">Select Experience Level</option>
-                      <option value="entry">Entry Level</option>
-                      <option value="mid">Mid Level</option>
-                      <option value="senior">Senior Level</option>
-                      <option value="executive">Executive</option>
-                      <option value="student">Student</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Annual Income Range
-                    </label>
-                    <select
-                      value={editData.annual_income_range || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, annual_income_range: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="">Select Income Range</option>
-                      <option value="under-25k">Under $25,000</option>
-                      <option value="25k-50k">$25,000 - $50,000</option>
-                      <option value="50k-75k">$50,000 - $75,000</option>
-                      <option value="75k-100k">$75,000 - $100,000</option>
-                      <option value="100k-150k">$100,000 - $150,000</option>
-                      <option value="150k-plus">$150,000+</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
-                    </select>
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

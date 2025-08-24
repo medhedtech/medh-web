@@ -9,7 +9,7 @@ import React from "react";
 import { HireSectionPlacement } from '@/components/sections/placement-guaranteed/HireSection';
 import { WorkProcessPlacement } from '@/components/sections/placement-guaranteed/workProcessPlacement';
 import { PlacementBenefits } from '@/components/sections/placement-guaranteed/placementBenefits';
-import { PlacementFAQ } from '@/components/sections/placement-guaranteed/PlacementFAQ';
+import PlacementFAQ from '@/components/sections/placement-guaranteed/PlacementFAQ';
 
 import PlacementCourseBanner from "@/components/sections/placement-guaranteed/PlacementCourseBanner";
 import PlacementCourseDetails from "@/components/sections/placement-guaranteed/placement-course-details";

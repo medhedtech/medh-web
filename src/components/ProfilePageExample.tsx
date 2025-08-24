@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ProfileCompletionBar from './ProfileCompletionBar';
+
 import { 
   UserCircleIcon, 
   PencilIcon,
@@ -67,12 +67,7 @@ const ProfilePageExample: React.FC<ProfilePageExampleProps> = ({ className = '' 
         </div>
       </div>
 
-      {/* Profile Completion Bar */}
-      <ProfileCompletionBar 
-        onFieldClick={handleFieldEdit}
-        showDetails={true}
-        className="sticky top-4 z-10"
-      />
+
 
       {/* Profile Form Sections */}
       <div className="space-y-6">
@@ -205,15 +200,7 @@ const ProfilePageExample: React.FC<ProfilePageExampleProps> = ({ className = '' 
           </div>
         </div>
 
-        {/* Compact Version Example */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Compact Version (for sidebar/header)</h3>
-          <ProfileCompletionBar 
-            onFieldClick={handleFieldEdit}
-            compact={true}
-            showDetails={false}
-          />
-        </div>
+
       </div>
     </div>
   );
