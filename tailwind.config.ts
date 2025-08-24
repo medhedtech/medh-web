@@ -3,7 +3,6 @@ import tailwindForms from '@tailwindcss/forms';
 import tailwindTypography from '@tailwindcss/typography';
 import tailwindAspectRatio from '@tailwindcss/aspect-ratio';
 import tailwindAnimate from 'tailwindcss-animate';
-import tailwindLineClamp from '@tailwindcss/line-clamp';
 
 const config: Config = {
   darkMode: 'class',
@@ -109,7 +108,6 @@ const config: Config = {
     tailwindTypography,
     tailwindAspectRatio,
     tailwindAnimate,
-    tailwindLineClamp,
   ],
 };
 
