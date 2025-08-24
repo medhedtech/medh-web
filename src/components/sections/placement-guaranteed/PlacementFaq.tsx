@@ -215,7 +215,7 @@ const PlacementFAQ: React.FC = () => {
                           key={globalIndex}
                           className="group/faq bg-gradient-to-r from-gray-50/80 to-blue-50/80 dark:from-gray-700/80 dark:to-blue-900/20 rounded-lg border border-gray-200/50 dark:border-gray-600/50 overflow-hidden hover:shadow-sm transition-all duration-300 hover:border-blue-300/50 dark:hover:border-blue-500/50"
                         >
-                          <button
+              <button
                             onClick={() => toggleItem(globalIndex)}
                             className="w-full px-4 py-3 text-left bg-transparent hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 transition-all duration-300 flex items-center justify-between group/button"
                           >
@@ -227,7 +227,7 @@ const PlacementFAQ: React.FC = () => {
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed group-hover/button:text-blue-700 dark:group-hover/button:text-blue-300 transition-colors duration-200">
                                 {item.question}
-                              </span>
+                </span>
                             </div>
                             <div className="flex-shrink-0 ml-2">
                               <div className={`w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-180' : ''}`}>
@@ -238,7 +238,7 @@ const PlacementFAQ: React.FC = () => {
                                 )}
                               </div>
                             </div>
-                          </button>
+              </button>
                           
                           <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                             <div className="px-4 pb-3 bg-white/60 dark:bg-gray-800/60 border-t border-gray-200/50 dark:border-gray-600/50">
@@ -281,6 +281,6 @@ const PlacementFAQ: React.FC = () => {
       </div>
     </section>
   );
-};
+}; 
 
 export default PlacementFAQ; 
