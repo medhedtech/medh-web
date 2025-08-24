@@ -5,7 +5,7 @@ import Link from "next/link";
 import { courseTypesAPI } from "@/apis/courses";
 import { showToast } from '@/utils/toastManager';
 
-export default function AdminPage() {
+function AdminPage() {
   const [courseStats, setCourseStats] = useState({
     total: 0,
     active: 0,
@@ -181,4 +181,6 @@ export default function AdminPage() {
       </main>
     </div>
   );
-} 
+}
+
+export default AdminPage; 
