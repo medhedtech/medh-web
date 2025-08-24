@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Run on the edge for maximum proximity to the visitor
-export const runtime = "edge";
-
 // ---------------------------------------------------------------------------
 // Video variants – mirrors the paths previously hard-coded in Home1.tsx.
-// Keep the object small to avoid oversized edge bundles.
 // ---------------------------------------------------------------------------
 const VIDEO_VARIANTS = {
   dark: {
@@ -25,7 +21,7 @@ const VIDEO_VARIANTS = {
 type ThemeKey = keyof typeof VIDEO_VARIANTS;
 
 /**
- * Very small UA check – we do NOT ship a heavyweight UA-parser to the edge.
+ * Very small UA check for mobile detection.
  */
 const isMobileUA = (ua: string): boolean => {
   return /mobile|android|iphone|ipad|ipod|iemobile|opera mini/i.test(ua);
