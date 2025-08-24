@@ -367,6 +367,9 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       fieldOfStudy: editData.field_of_study,
       graduationYear: editData.graduation_year
     });
+    console.log('🌐 API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'Using default');
+    console.log('🔑 Token available:', !!getAuthToken());
+    
     setSaving(true);
     try {
       // Prepare the data for API call with proper structure
@@ -393,6 +396,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         youtube_link: editData.youtube_link?.trim() || null,
         github_link: editData.github_link?.trim() || null,
         portfolio_link: editData.portfolio_link?.trim() || null,
+        
         
         // Meta object for personal details
         meta: {
@@ -616,6 +620,9 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       }
       
       console.log('🔄 Fetching comprehensive user profile...');
+      console.log('🔑 Token available:', !!token);
+      console.log('🌐 API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'Using default');
+      
       const response = await getComprehensiveUserProfile();
       console.log('📡 API Response:', response);
       
@@ -624,6 +631,13 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       
       if (serverResponse && serverResponse.success && serverResponse.data) {
         const apiData = serverResponse.data as any;
+        
+        console.log('📊 Profile Data Received:', {
+          hasBasicInfo: !!apiData.basic_info,
+          hasPersonalDetails: !!apiData.personal_details,
+          hasProfileMedia: !!apiData.profile_media,
+          profileCompletion: apiData.basic_info?.profile_completion || 0
+        });
         
         const transformedProfile: ComprehensiveProfile = {
             basic_info: {

@@ -7,6 +7,13 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
+  // Force development URL for now to fix fetch error
+  const devUrl = 'http://localhost:8080/api/v1';
+  console.log('🔧 Forcing development API URL:', devUrl);
+  return devUrl;
+
+  // Original logic commented out for now
+  /*
   // First priority: Explicit API URL override (highest priority)
   if (process.env.NEXT_PUBLIC_API_URL) {
     console.log('🚀 Using explicit API URL from environment:', process.env.NEXT_PUBLIC_API_URL);
@@ -36,6 +43,7 @@ const getApiBaseUrl = (): string => {
       return devUrl;
     }
   }
+  */
 };
 
 // Export the base URL
