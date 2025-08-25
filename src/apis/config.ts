@@ -49,7 +49,6 @@ const getApiBaseUrl = (): string => {
     }
   }
 };
-};
 
 // Export the base URL
 export const apiBaseUrl = getApiBaseUrl();
