@@ -68,7 +68,7 @@ const AdminGenerateCertificate = () => {
         url: apiUrls.courses.getAllCourses,
         requireAuth: false, // Public route, no auth needed
         onSuccess: (data) => {
-          console.log("Courses API success:", data);
+                    console.log("Courses API success:", data);
         },
         onFail: (error) => {
           console.error("Failed to fetch courses:", error);
