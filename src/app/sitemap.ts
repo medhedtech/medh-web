@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next';
 import { IBlog } from '@/types/blog.types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+// Import the API base URL from our centralized config
+import { apiBaseUrl as API_BASE_URL } from '../apis/config';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://medh.co';
 
 // Fetch all published blogs for sitemap

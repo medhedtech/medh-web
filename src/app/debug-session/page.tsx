@@ -11,7 +11,9 @@ export default function DebugSession() {
 
   const testDirectFetch = async () => {
     console.log('🧪 Testing Direct Fetch with student ID:', studentId);
-    const url = `http://localhost:8080/api/v1/live-classes/students/${studentId}/latest-session`;
+    // Import the API base URL from our centralized config
+import { apiBaseUrl } from '../../../apis/config';
+const url = `${apiBaseUrl}/live-classes/students/${studentId}/latest-session`;
     console.log('🔗 Direct Fetch URL:', url);
     
     setLoading(true);
@@ -49,8 +51,8 @@ export default function DebugSession() {
 
   const testAPI = async () => {
     console.log('🧪 Testing API with student ID:', studentId);
-    console.log('🌐 API Base URL:', 'http://localhost:8080/api/v1');
-    console.log('🔗 Full URL:', `http://localhost:8080/api/v1/live-classes/students/${studentId}/latest-session`);
+          console.log('🌐 API Base URL:', apiBaseUrl);
+      console.log('🔗 Full URL:', `${apiBaseUrl}/live-classes/students/${studentId}/latest-session`);
     
     setLoading(true);
     setError("");

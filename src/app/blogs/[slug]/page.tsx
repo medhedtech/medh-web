@@ -13,7 +13,8 @@ import { BlogSEO } from '@/utils/blog-seo';
 import BlogInteractiveButtons from './BlogInteractiveButtons';
 // Blog post content will be rendered inline
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+// Import the API base URL from our centralized config
+import { apiBaseUrl as API_BASE_URL } from '../../../../apis/config';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;

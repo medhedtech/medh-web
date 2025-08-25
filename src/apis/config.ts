@@ -7,27 +7,15 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // Force production URL if we're in production
+  // Production environment - always use production URL
   if (process.env.NODE_ENV === 'production') {
-    // Always use production URL in production, regardless of environment variables
     const prodUrl = 'https://api.medh.co';
     console.log('🚀 Production environment detected - using production API URL:', prodUrl);
     return prodUrl;
   }
 
-  // First priority: Explicit API URL override (for development)
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    console.log('🚀 Using explicit API URL from environment:', process.env.NEXT_PUBLIC_API_URL);
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
-
-  // Second priority: Environment-specific URLs
-  if (process.env.NODE_ENV === 'test') {
-    const testUrl = process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co';
-    console.log('🧪 Test environment detected - using:', testUrl);
-    return testUrl;
-  } else {
-    // Development environment
+  // Development environment
+  if (process.env.NODE_ENV === 'development') {
     // Check if we're running on localhost
     if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
       const devUrl = process.env.NEXT_PUBLIC_API_URL_DEV || 'http://localhost:8080/api/v1';
@@ -40,6 +28,24 @@ const getApiBaseUrl = (): string => {
       return devUrl;
     }
   }
+
+  // Test environment
+  if (process.env.NODE_ENV === 'test') {
+    const testUrl = process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co';
+    console.log('🧪 Test environment detected - using:', testUrl);
+    return testUrl;
+  }
+
+  // Fallback: Use explicit API URL if provided, otherwise production
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    console.log('🚀 Using explicit API URL from environment:', process.env.NEXT_PUBLIC_API_URL);
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  // Default fallback to production
+  const defaultUrl = 'https://api.medh.co';
+  console.log('⚠️ No specific environment detected - using default production URL:', defaultUrl);
+  return defaultUrl;
 };
 
 // Export the base URL
