@@ -900,7 +900,6 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       if (passwordData.new_password.length > 128) {
         errors.push('New password must not exceed 128 characters');
       }
-      }
       
       // Check if new password is different from current
       if (passwordData.current_password && passwordData.new_password === passwordData.current_password) {
