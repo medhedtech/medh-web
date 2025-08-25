@@ -18,28 +18,12 @@ export const verifyPassword = async (password, hash) => {
   return key === derivedKey.toString('hex');
 };
 
-// Password strength validation
+// Password strength validation - NO RESTRICTIONS
 export const validatePasswordStrength = (password) => {
   const errors = [];
   
-  if (password.length < securityConfig.passwordPolicy.minLength) {
-    errors.push(`Password must be at least ${securityConfig.passwordPolicy.minLength} characters long`);
-  }
-  
-  if (securityConfig.passwordPolicy.requireUppercase && !/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
-  }
-  
-  if (securityConfig.passwordPolicy.requireLowercase && !/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter');
-  }
-  
-  if (securityConfig.passwordPolicy.requireNumbers && !/\d/.test(password)) {
-    errors.push('Password must contain at least one number');
-  }
-  
-  if (securityConfig.passwordPolicy.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push('Password must contain at least one special character');
+  if (!password || password.length === 0) {
+    errors.push('Password cannot be empty');
   }
   
   return {

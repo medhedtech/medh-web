@@ -14,6 +14,7 @@ import logo1 from "@/assets/images/logo/medh_logo-1.png";
 import Email from "@/assets/images/log-sign/Email.svg";
 import lock from "@/assets/images/log-sign/lock.svg";
 import CustomReCaptcha from '../../shared/ReCaptcha';
+import { showToast } from '@/utils/toastManager';
 
 const schema = yup
   .object({
@@ -24,10 +25,10 @@ const schema = yup
     }),
     newPassword: yup.string().when("tempPasswordVerified", {
       is: true,
-      then: yup
-        .string()
-        .min(8, "At least 8 characters required")
-        .required("New password is required"),
+                  then: yup
+              .string()
+              .min(6, "At least 6 characters required")
+              .required("New password is required"),
     }),
     confirmPassword: yup.string().when("tempPasswordVerified", {
       is: true,

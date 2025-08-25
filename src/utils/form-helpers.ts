@@ -26,43 +26,16 @@ export const formValidators = {
     }
   },
 
-  // Password strength validation
+  // Password strength validation - NO RESTRICTIONS
   password: (value: string): { isValid: boolean; strength: 'weak' | 'medium' | 'strong'; issues: string[] } => {
     const issues: string[] = [];
-    let score = 0;
 
-    if (value.length < 8) {
-      issues.push("Password must be at least 8 characters long");
-    } else {
-      score += 1;
+    if (!value || value.length === 0) {
+      issues.push("Password cannot be empty");
     }
 
-    if (!/[a-z]/.test(value)) {
-      issues.push("Password must contain at least one lowercase letter");
-    } else {
-      score += 1;
-    }
-
-    if (!/[A-Z]/.test(value)) {
-      issues.push("Password must contain at least one uppercase letter");
-    } else {
-      score += 1;
-    }
-
-    if (!/[0-9]/.test(value)) {
-      issues.push("Password must contain at least one number");
-    } else {
-      score += 1;
-    }
-
-    if (!/[^a-zA-Z0-9]/.test(value)) {
-      issues.push("Password must contain at least one special character");
-    } else {
-      score += 1;
-    }
-
-    const strength = score <= 2 ? 'weak' : score <= 4 ? 'medium' : 'strong';
-    const isValid = score >= 3 && value.length >= 8;
+    const isValid = value && value.length > 0;
+    const strength = 'strong'; // Always strong if not empty
 
     return { isValid, strength, issues };
   },

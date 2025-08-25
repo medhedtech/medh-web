@@ -414,3 +414,4 @@ The integration of instructor and student collections with their management page
 6. **Future-Ready Architecture:** Extensible design for future enhancements
 
 This implementation ensures that both instructor and student management pages now display rich, comprehensive information directly from their respective database collections, providing administrators with the complete picture they need for effective management.
+

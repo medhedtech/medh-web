@@ -7,25 +7,22 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // Force development URL for now to fix fetch error
-  const devUrl = 'http://localhost:8080/api/v1';
-  console.log('🔧 Forcing development API URL:', devUrl);
-  return devUrl;
+  // Force production URL if we're in production
+  if (process.env.NODE_ENV === 'production') {
+    // Always use production URL in production, regardless of environment variables
+    const prodUrl = 'https://api.medh.co';
+    console.log('🚀 Production environment detected - using production API URL:', prodUrl);
+    return prodUrl;
+  }
 
-  // Original logic commented out for now
-  /*
-  // First priority: Explicit API URL override (highest priority)
+  // First priority: Explicit API URL override (for development)
   if (process.env.NEXT_PUBLIC_API_URL) {
     console.log('🚀 Using explicit API URL from environment:', process.env.NEXT_PUBLIC_API_URL);
     return process.env.NEXT_PUBLIC_API_URL;
   }
 
   // Second priority: Environment-specific URLs
-  if (process.env.NODE_ENV === 'production') {
-    const prodUrl = process.env.NEXT_PUBLIC_API_URL_PROD || 'https://api.medh.co';
-    console.log('🌐 Production environment detected - using:', prodUrl);
-    return prodUrl;
-  } else if (process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV === 'test') {
     const testUrl = process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co';
     console.log('🧪 Test environment detected - using:', testUrl);
     return testUrl;
@@ -43,7 +40,6 @@ const getApiBaseUrl = (): string => {
       return devUrl;
     }
   }
-  */
 };
 
 // Export the base URL

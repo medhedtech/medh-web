@@ -104,3 +104,4 @@ amplify_outputs*
 amplifyconfiguration*
 
 .config/
+.env*
