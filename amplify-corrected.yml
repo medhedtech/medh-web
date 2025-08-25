@@ -1,0 +1,35 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "🔧 Setting up Node.js v22.16.0"
+        - nvm install 22.16.0
+        - nvm use 22.16.0
+        # Environment variables for standalone build
+        - export NEXT_TELEMETRY_DISABLED=1
+        - export GENERATE_SOURCEMAP=false
+        - export NODE_OPTIONS="--max-old-space-size=8192"
+        - echo "📦 Installing dependencies using npm ci"
+        - npm ci
+    build:
+      commands:
+        - echo "🏗 Running Next.js production build with standalone output"
+        - npm run build
+        # Verify standalone files are generated
+        - echo "🔍 Checking for required-server-files.json"
+        - ls -la .next/standalone/ || echo "Standalone folder not found"
+        - ls -la .next/standalone/required-server-files.json || echo "required-server-files.json not found"
+        # Copy static files to standalone (required for Next.js standalone)
+        - echo "📁 Copying static files to standalone"
+        - cp -r .next/static .next/standalone/.next/static || echo "No static files to copy"
+        - cp -r public .next/standalone/public || echo "No public files to copy"
+  artifacts:
+    baseDirectory: .next/standalone
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
+      - ~/.npm

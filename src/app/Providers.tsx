@@ -12,6 +12,7 @@ import { ServerLoadingProvider } from "@/providers/ServerLoadingProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ToastProvider } from "@/components/shared/ui/ToastProvider";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { AuthProvider } from "@/components/layout/Providers";
 
 // Dynamically import StorageProvider to prevent HMR issues
 const StorageProvider = dynamic(
@@ -156,11 +157,13 @@ export default function Providers({ children }: ProvidersProps) {
                   <CartContextProvider>
                     <PlacementFormProvider>
                       <ToastProvider>
-                        <Suspense fallback={<MinimalLoadingScreen />}>
-                          <GoogleOneTapProvider>
-                            {children}
-                          </GoogleOneTapProvider>
-                        </Suspense>
+                        <AuthProvider>
+                          <Suspense fallback={<MinimalLoadingScreen />}>
+                            <GoogleOneTapProvider>
+                              {children}
+                            </GoogleOneTapProvider>
+                          </Suspense>
+                        </AuthProvider>
                       </ToastProvider>
                     </PlacementFormProvider>
                   </CartContextProvider>

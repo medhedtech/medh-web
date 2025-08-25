@@ -1,0 +1,60 @@
+# Node modules
+node_modules
+
+# Next.js cache & maps (CRITICAL: These are huge files ~1.9GB)
+.next/cache
+.next/cache/**
+.next/trace
+.next//*.map
+.next/server//*.map
+.next/server/app//*.js.map
+.next/server/chunks//*.map
+# Webpack cache files
+.next/cache/webpack/**
+.next/cache/webpack/client-production/**
+.next/cache/webpack/server-production/**
+
+# Build traces
+.next/trace
+.next/BUILD_ID
+
+# Logs
+*.log
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Tests
+coverage
+_tests_/
+*.test.js
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.ts
+*.spec.tsx
+test-*.js
+test-*.cjs
+test-*.ts
+test_*.json
+src/test/
+src/test-*
+
+# Misc
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Development files
+*.md
+docs/
+memory-bank/
+scripts/
+postman/
+
+# Large assets that might not be needed
+public/fakedata/
+public/excel/

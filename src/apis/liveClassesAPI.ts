@@ -1,9 +1,10 @@
 import { apiClient } from './apiClient';
 import { createApiClient } from './apiClient';
+import { apiBaseUrl } from './config';
 
 // Create a specific API client for live classes that points directly to the backend
 const liveClassesApiClient = createApiClient({
-  baseUrl: 'http://localhost:8080/api/v1'
+  baseUrl: apiBaseUrl
 });
 
 // Create a separate API client for live sessions that uses Next.js API routes
@@ -56,11 +57,16 @@ export interface IDashboard {
 
 export interface IBatch {
   _id: string;
-  batch_name: string;
-  batch_code: string;
-  start_date: string;
-  end_date: string;
+  batch_name?: string;
+  name?: string;
+  batch_code?: string;
+  code?: string;
+  start_date?: string;
+  startDate?: string;
+  end_date?: string;
+  endDate?: string;
   enrolled_students?: number;
+  enrolledStudents?: number;
 }
 
 export interface ICourseCategory {
@@ -116,6 +122,7 @@ export interface ICreateLiveSessionRequest {
   grades: string[];
   dashboard: string;
   instructorId: string;
+  batchId?: string; // Add batchId field
   video: {
     fileId: string;
     name: string;
@@ -170,12 +177,13 @@ const staticGrades: IGrade[] = [
 
 // API Functions
 export const liveClassesAPI = {
-  // Get students with search and pagination
-  getStudents: async (search?: string, page: number = 1, limit: number = 20) => {
+  // Get all students (no pagination for form dropdowns)
+  getStudents: async (search?: string) => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
-    params.append('page', page.toString());
-    params.append('limit', limit.toString());
+    // Remove pagination limits for form usage - get all students
+    params.append('limit', '1000'); // High limit to get all students
+    params.append('page', '1');
     
     return liveClassesApiClient.get<{ data: { items: IStudent[]; total: number; page: number; limit: number; pages: number } }>(`/live-classes/students?${params}`);
   },
@@ -190,12 +198,13 @@ export const liveClassesAPI = {
     return liveClassesApiClient.get<{ data: IDashboard[] }>('/live-classes/dashboards');
   },
 
-  // Get instructors from backend
-  getInstructors: async (search?: string, page: number = 1, limit: number = 20) => {
+  // Get all instructors (no pagination for form dropdowns)
+  getInstructors: async (search?: string) => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
-    params.append('page', page.toString());
-    params.append('limit', limit.toString());
+    // Remove pagination limits for form usage - get all instructors
+    params.append('limit', '1000'); // High limit to get all instructors
+    params.append('page', '1');
     
     return liveClassesApiClient.get<{ data: { items: IInstructor[]; total: number } }>(`/live-classes/instructors?${params}`);
   },
@@ -313,6 +322,58 @@ export const liveClassesAPI = {
     }
   },
 
+  // Generate fresh signed video URL
+  generateSignedVideoUrl: async (videoPath: string) => {
+    console.log('🔄 Generating fresh signed URL for video path:', videoPath);
+    try {
+      const response = await liveClassesApiClient.post<{
+        status: string;
+        data: {
+          signedUrl: string;
+          expiresIn: number;
+          videoPath: string;
+        };
+      }>('/live-classes/generate-signed-url', {
+        videoPath: videoPath
+      });
+      console.log('✅ Fresh signed URL response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error generating fresh signed URL:', error);
+      throw error;
+    }
+  },
+
+  // Get video by batch, student, and session from S3 bucket structure
+  getVideoByBatchStudentSession: async (batchId: string, studentId: string, sessionNo: string) => {
+    console.log(`🔄 Fetching video from S3 - Batch: ${batchId}, Student: ${studentId}, Session: ${sessionNo}`);
+    try {
+      const response = await liveClassesApiClient.get<{
+        status: string;
+        data: {
+          signedUrl: string;
+          videoMetadata: {
+            fileName: string;
+            fileSize: number;
+            lastModified: Date;
+            s3Key: string;
+            folderPath: string;
+          };
+          expiresIn: number;
+          batchId: string;
+          studentId: string;
+          sessionNo: string;
+          studentName: string;
+        };
+      }>(`/live-classes/video/${batchId}/${studentId}/${sessionNo}`);
+      console.log('✅ S3 video fetch response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Error fetching video from S3:', error);
+      throw error;
+    }
+  },
+
   // Update session
   updateSession: async (sessionId: string, sessionData: Partial<ICreateLiveSessionRequest>) => {
     return liveClassesApiClient.put<{ success: boolean }>(`/live-classes/sessions/${sessionId}`, sessionData);
@@ -321,6 +382,35 @@ export const liveClassesAPI = {
   // Delete session
   deleteSession: async (sessionId: string) => {
     return liveClassesApiClient.delete<{ success: boolean }>(`/live-classes/sessions/${sessionId}`);
+  },
+
+  // Get student's latest session
+  getStudentLatestSession: async (studentId: string) => {
+    console.log('🌐 API Call: getStudentLatestSession for student:', studentId);
+    const url = `/live-classes/students/${studentId}/latest-session`;
+    console.log('🔗 Direct Backend URL:', url);
+    
+    try {
+      const response = await liveClassesApiClient.get<{
+        sessionTitle: string;
+        sessionNo: string;
+        status: string;
+        student: IStudent;
+        instructor: IInstructor;
+        grade: IGrade;
+        batch: any;
+        date: string;
+        courseCategory: string;
+        remarks?: string;
+        summary?: any;
+      }>(url);
+      
+      console.log('✅ API Response received:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ API Error:', error);
+      throw error;
+    }
   },
 
   // Get course statistics
@@ -372,6 +462,7 @@ export const useLiveClassesAPI = () => {
     getPreviousSession: liveClassesAPI.getPreviousSession,
     getSessions: liveClassesAPI.getSessions,
     getSession: liveClassesAPI.getSession,
+    getStudentLatestSession: liveClassesAPI.getStudentLatestSession,
     updateSession: liveClassesAPI.updateSession,
     deleteSession: liveClassesAPI.deleteSession,
     

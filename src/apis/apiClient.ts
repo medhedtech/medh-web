@@ -9,7 +9,7 @@ export interface IApiClientOptions {
   baseUrl?: string;
   headers?: Record<string, string>;
   timeout?: number;
-  credentials?: RequestCredentials;
+  credentials?: RequestCredentials;  
   mode?: RequestMode;
 }
 
@@ -209,6 +209,13 @@ export class ApiClient {
     this.ensureAuthToken(endpoint);
     
     const url = this.buildUrl(endpoint);
+    
+    console.log('🔧 PATCH Request Debug:');
+    console.log('📍 Endpoint:', endpoint);
+    console.log('🌐 Full URL:', url);
+    console.log('📦 Data:', data);
+    console.log('🔑 Auth Token:', this.getAuthToken() ? 'Present' : 'Missing');
+    
     return this.request<T>(url, {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -335,15 +342,23 @@ export class ApiClient {
     const contentType = response.headers.get('content-type');
     let data: any;
 
+    console.log('🔍 Processing response...');
+    console.log('📊 Status:', response.status);
+    console.log('📋 Content-Type:', contentType);
+
     try {
       if (contentType?.includes('application/json')) {
         data = await response.json();
+        console.log('📦 JSON Response Data:', data);
       } else if (contentType?.includes('text/')) {
         data = await response.text();
+        console.log('📄 Text Response Data:', data);
       } else {
         data = await response.blob();
+        console.log('📎 Blob Response Data:', data);
       }
     } catch (error) {
+      console.error('❌ Error parsing response:', error);
       // Handle parsing error
       return {
         status: 'error',
@@ -354,21 +369,22 @@ export class ApiClient {
 
     // Handle unauthorized error with token refresh
     if (response.status === 401 && retryCount === 0) {
-      console.log('Received 401 - Attempting token refresh');
+      console.log('🔐 Received 401 - Attempting token refresh');
       const refreshed = await this.refreshToken();
       
       if (refreshed && requestOptions) {
-        console.log('Token refreshed successfully - Retrying original request');
+        console.log('✅ Token refreshed successfully - Retrying original request');
         // Retry the original request with new token
         const originalUrl = response.url;
         return this.request<T>(originalUrl, requestOptions, 1);
       } else {
-        console.log('Token refresh failed or no request options available');
+        console.log('❌ Token refresh failed or no request options available');
       }
     }
 
     // Handle non-2xx responses
     if (!response.ok) {
+      console.log('❌ Non-2xx response received');
       // If still unauthorized after refresh, only redirect for protected endpoints
       if (response.status === 401) {
         // Only redirect to login if this was an authenticated request
@@ -381,7 +397,7 @@ export class ApiClient {
           localStorage.removeItem('refreshToken');
           sessionStorage.removeItem('refreshToken');
           // Only redirect to login for protected endpoints
-          console.log('Redirecting to login due to 401 on protected endpoint');
+          console.log('🔄 Redirecting to login due to 401 on protected endpoint');
           window.location.href = '/login';
         }
         
@@ -400,6 +416,7 @@ export class ApiClient {
       };
     }
 
+    console.log('✅ Success response processed');
     return {
       status: 'success',
       data,
@@ -419,6 +436,12 @@ export class ApiClient {
     if (!this.initialized) {
       this.initializeToken();
     }
+    
+    console.log('🚀 Making HTTP Request:');
+    console.log('🌐 URL:', url);
+    console.log('📋 Method:', options.method);
+    console.log('📦 Body:', options.body);
+    console.log('🔑 Headers:', this.defaultHeaders);
     
     const controller = new AbortController();
     const { signal } = controller;
@@ -442,9 +465,16 @@ export class ApiClient {
 
       clearTimeout(timeoutId);
       
+      console.log('📡 Response received:');
+      console.log('📊 Status:', response.status);
+      console.log('📋 Status Text:', response.statusText);
+      console.log('🔗 Response URL:', response.url);
+      
       return this.handleResponse<T>(response, retryCount, options);
     } catch (error: any) {
       clearTimeout(timeoutId);
+      
+      console.error('❌ Request failed:', error);
       
       if (error.name === 'AbortError') {
         return {

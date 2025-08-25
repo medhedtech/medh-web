@@ -1,0 +1,37 @@
+# API Configuration for Different Environments
+# Copy this content to .env.local file in the medh-web directory
+
+# =============================================================================
+# DEVELOPMENT (Local Backend)
+# =============================================================================
+# Use this for local development with local backend
+NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+
+# =============================================================================
+# PRODUCTION (Live Backend)
+# =============================================================================
+# Use this for production or when you want to use the live backend
+# NEXT_PUBLIC_API_URL=https://api.medh.co
+
+# =============================================================================
+# STAGING/TESTING (Optional)
+# =============================================================================
+# Use these for specific environments (optional)
+# NEXT_PUBLIC_API_URL_PROD=https://api.medh.co
+# NEXT_PUBLIC_API_URL_DEV=http://localhost:8080/api/v1
+# NEXT_PUBLIC_API_URL_TEST=https://api.medh.co
+
+# =============================================================================
+# INSTRUCTIONS
+# =============================================================================
+# 1. For development: Uncomment the development line above
+# 2. For production: Uncomment the production line above
+# 3. Save as .env.local in the medh-web directory
+# 4. Restart your development server
+# 5. The profile edit form should now work correctly
+
+# =============================================================================
+# VERIFICATION
+# =============================================================================
+# After setting up, run: node test-api-config.js
+# This will verify your configuration is working correctly

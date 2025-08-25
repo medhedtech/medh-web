@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { FaPlus, FaChevronDown, FaEye, FaSearch, FaFilter, FaUsers, FaUserGraduate, FaTrash, FaToggleOn, FaToggleOff, FaPhone, FaSync } from "react-icons/fa";
+import { FaPlus, FaChevronDown, FaEye, FaSearch, FaFilter, FaUsers, FaUserGraduate, FaTrash, FaToggleOn, FaToggleOff, FaPhone, FaSync, FaUserCheck } from "react-icons/fa";
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
 import MyTable from "@/components/shared/common-table/page";
@@ -10,6 +10,7 @@ import AddInstructor from "./AddInstructor";
 import { Upload, Loader, Download, FileText } from "lucide-react";
 import { IInstructor, IColumn, IFilterOptions } from "@/types/instructor.types";
 import { motion, AnimatePresence } from "framer-motion";
+import { showToast } from "@/utils/toastManager";
 
 const InstructorTable: React.FC = () => {
   const { deleteQuery } = useDeleteQuery();
@@ -45,34 +46,100 @@ const InstructorTable: React.FC = () => {
   const fetchInstructors = useCallback(async (forceReload: boolean = false): Promise<void> => {
     try {
       setLoading(true);
-      console.log('Fetching instructors...', forceReload ? '(Force reload)' : '');
+      console.log('Fetching instructors from instructor collection...', forceReload ? '(Force reload)' : '');
       
       // Add cache busting parameter for force reload
       const url = forceReload 
         ? `${apiUrls.Instructor.getAllInstructors}?_t=${Date.now()}`
         : apiUrls.Instructor.getAllInstructors;
 
+      console.log('API URL:', url);
+
       await getQuery({
         url,
         onSuccess: (response: any) => {
-          console.log('Instructors fetched successfully:', response);
+          console.log('Instructors fetched successfully from instructor collection:', response);
+          
+          let instructorData = [];
+          
           if (Array.isArray(response)) {
-            setInstructors([...response]); // Force new array reference
+            instructorData = response;
           } else if (response?.data && Array.isArray(response.data)) {
-            setInstructors([...response.data]); // Force new array reference
+            instructorData = response.data;
+          } else if (response?.instructors && Array.isArray(response.instructors)) {
+            instructorData = response.instructors;
           } else {
+            console.error("Invalid API response format:", response);
             setInstructors([]);
-            console.error("Invalid API response:", response);
+            return;
           }
+
+          console.log('Raw instructor data:', instructorData);
+
+          // Transform instructor data to include all details from instructor collection
+          const transformedInstructors = instructorData.map((instructor: any, index: number) => ({
+            _id: instructor._id || instructor.id,
+            full_name: instructor.full_name || instructor.name || 'N/A',
+            email: instructor.email || 'N/A',
+            phone_number: instructor.phone_number || instructor.phone || 'N/A',
+            status: instructor.status || 'Active',
+            createdAt: instructor.createdAt || instructor.created_at || new Date().toISOString(),
+            updatedAt: instructor.updatedAt || instructor.updated_at || new Date().toISOString(),
+            
+            // Instructor-specific details from instructor collection
+            domain: instructor.domain || 'N/A',
+            experience: instructor.experience || {},
+            qualifications: instructor.qualifications || {},
+            bio: instructor.bio || 'No bio available',
+            avatar: instructor.avatar || instructor.profile_image || null,
+            
+            // Meta information
+            meta: {
+              category: instructor.domain || 'N/A',
+              course_name: instructor.meta?.course_name || 'N/A',
+              gender: instructor.meta?.gender || 'Not Specified',
+              upload_resume: instructor.meta?.upload_resume || null,
+              age: instructor.meta?.age || null,
+              skills: instructor.qualifications?.skills || [],
+              education: instructor.qualifications?.education || [],
+              certifications: instructor.qualifications?.certifications || [],
+              previous_companies: instructor.experience?.previous_companies || []
+            },
+            
+            // Additional instructor details
+            is_active: instructor.is_active !== false,
+            email_verified: instructor.email_verified || false,
+            
+            // Performance metrics (if available)
+            performance_metrics: {
+              total_courses: instructor.performance_metrics?.total_courses || 0,
+              total_students: instructor.performance_metrics?.total_students || 0,
+              average_rating: instructor.performance_metrics?.average_rating || 0,
+              completion_rate: instructor.performance_metrics?.completion_rate || 0
+            },
+            
+            no: index + 1
+          }));
+
+          setInstructors(transformedInstructors);
+          console.log('Transformed instructors data:', transformedInstructors);
         },
         onFail: (error) => {
-          console.error("Failed to fetch instructors:", error);
+          console.error("Failed to fetch instructors from instructor collection:", error);
           setInstructors([]);
+          // Show error toast
+          if (typeof showToast !== 'undefined') {
+            showToast.error("Failed to load instructors. Please try again.");
+          }
         },
       });
     } catch (error) {
-      console.error("Failed to fetch instructors:", error);
+      console.error("Failed to fetch instructors from instructor collection:", error);
       setInstructors([]);
+      // Show error toast
+      if (typeof showToast !== 'undefined') {
+        showToast.error("Error loading instructors. Please check your connection.");
+      }
     } finally {
       setLoading(false);
     }
@@ -254,38 +321,119 @@ const InstructorTable: React.FC = () => {
       className: "w-16 text-center" 
     },
     { 
-      Header: "Name", 
+      Header: "Instructor Details", 
       accessor: "full_name",
-      className: "min-w-[200px]",
+      className: "min-w-[250px]",
       render: (row: IInstructor) => (
         <motion.div 
           className="flex items-center gap-3"
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
         >
-          <div 
-            className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg"
-            aria-label={`Avatar for ${row.full_name}`}
-          >
-            {row.full_name?.charAt(0)?.toUpperCase()}
-          </div>
+          {row.avatar ? (
+            <img 
+              src={row.avatar} 
+              alt={row.full_name}
+              className="w-10 h-10 rounded-full object-cover shadow-lg"
+            />
+          ) : (
+            <div 
+              className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg"
+              aria-label={`Avatar for ${row.full_name}`}
+            >
+              {row.full_name?.charAt(0)?.toUpperCase()}
+            </div>
+          )}
           <div>
             <div className="font-semibold text-gray-900 dark:text-white">{row.full_name}</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-              <FaPhone className="w-3 h-3" />
-              {row.phone_number || 'No phone'}
-            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">{row.email}</div>
+            <div className="text-xs text-gray-400 dark:text-gray-500">Domain: {row.domain}</div>
           </div>
         </motion.div>
       )
     },
     { 
-      Header: "Email ID", 
-      accessor: "email",
-      className: "min-w-[250px]",
+      Header: "Contact & Status", 
+      accessor: "phone_number",
+      className: "min-w-[180px]",
       render: (row: IInstructor) => (
-        <div className="text-gray-600 dark:text-gray-300">
-          {row.email}
+        <div className="space-y-2">
+          <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
+            <FaPhone className="w-3 h-3" />
+            {row.phone_number || 'No phone'}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`h-2 w-2 rounded-full ${row.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <span className={`text-xs font-medium ${row.is_active ? 'text-green-600' : 'text-red-600'}`}>
+              {row.is_active ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+          {row.email_verified && (
+            <div className="flex items-center gap-1">
+              <FaUserCheck className="h-3 w-3 text-green-500" />
+              <span className="text-xs text-green-600">Email Verified</span>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      Header: "Experience & Skills",
+      accessor: "experience",
+      className: "min-w-[200px]",
+      render: (row: IInstructor) => (
+        <div className="space-y-1 text-sm">
+          <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Experience:</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">
+              {row.experience?.years || 0} years
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Skills:</span>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {row.meta?.skills?.slice(0, 3).map((skill: string, index: number) => (
+                <span key={index} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                  {skill}
+                </span>
+              ))}
+              {(row.meta?.skills?.length || 0) > 3 && (
+                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                  +{(row.meta?.skills?.length || 0) - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      Header: "Performance",
+      accessor: "performance",
+      className: "min-w-[150px]",
+      render: (row: IInstructor) => (
+        <div className="space-y-1 text-sm">
+          <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Courses:</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">
+              {row.performance_metrics?.total_courses || 0}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Students:</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">
+              {row.performance_metrics?.total_students || 0}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Rating:</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">
+              {row.performance_metrics?.average_rating ? 
+                `${row.performance_metrics.average_rating.toFixed(1)}/5` : 
+                'N/A'
+              }
+            </span>
+          </div>
         </div>
       )
     },
@@ -295,28 +443,7 @@ const InstructorTable: React.FC = () => {
       className: "min-w-[120px]",
       render: (row: IInstructor) => (
         <div className="text-gray-600 dark:text-gray-300">
-          {row.createdAt}
-        </div>
-      )
-    },
-    {
-      Header: "Course Details",
-      accessor: "course_details",
-      className: "min-w-[250px]",
-      render: (row: IInstructor) => (
-        <div className="space-y-1 text-sm">
-          <div>
-            <span className="font-medium text-gray-700 dark:text-gray-300">Category:</span>
-            <span className="ml-2 text-gray-600 dark:text-gray-400">{row?.meta?.category || "--"}</span>
-          </div>
-          <div>
-            <span className="font-medium text-gray-700 dark:text-gray-300">Course:</span>
-            <span className="ml-2 text-gray-600 dark:text-gray-400">{row?.meta?.course_name || "--"}</span>
-          </div>
-          <div>
-            <span className="font-medium text-gray-700 dark:text-gray-300">Gender:</span>
-            <span className="ml-2 text-gray-600 dark:text-gray-400">{row?.meta?.gender || "Not Specified"}</span>
-          </div>
+          {new Date(row.createdAt).toLocaleDateString()}
         </div>
       )
     },

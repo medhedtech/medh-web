@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { 
   FaPlay, 
@@ -14,17 +14,50 @@ import {
   FaGraduationCap,
   FaCalendarAlt,
   FaClock,
-  FaComments
+  FaComments,
+  FaExpand,
+  FaCompress
 } from "react-icons/fa";
 import { liveClassesAPI } from "@/apis/liveClassesAPI";
+import { motion } from "framer-motion";
+
+interface ISession {
+  _id: string;
+  sessionTitle: string;
+  sessionNo: string;
+  students: Array<{ _id: string; full_name: string; email: string }>;
+  grades: Array<{ _id: string; name: string }>;
+  instructorId: { _id: string; full_name: string; email: string };
+  video: {
+    fileId: string;
+    name: string;
+    size: number;
+    url?: string;
+  };
+  date: string;
+  remarks?: string;
+  summary?: {
+    title: string;
+    description: string;
+    items: Array<{
+      title: string;
+      description: string;
+    }>;
+  };
+  status: 'scheduled' | 'live' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function VideoSessionPage() {
   const params = useParams();
   const sessionId = params.id as string;
+  const videoRef = useRef<HTMLVideoElement>(null);
   
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<ISession | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [expandedSummary, setExpandedSummary] = useState<number | null>(null);
 
   useEffect(() => {
@@ -33,7 +66,42 @@ export default function VideoSessionPage() {
         setLoading(true);
         const response = await liveClassesAPI.getSession(sessionId);
         console.log('Session data:', response);
-        setSession(response.data);
+        
+        // Handle the API client response structure
+        // API client wraps backend response in { status: 'success', data: backendResponse }
+        // Backend returns { status: 'success', data: sessionData }
+        // So we need to access response.data.data
+        let sessionData = null;
+        if (response && response.status === 'success') {
+          if (response.data && response.data.data) {
+            // API client wrapped response: { status: 'success', data: { status: 'success', data: sessionData } }
+            sessionData = response.data.data;
+          } else if (response.data) {
+            // Direct backend response: { status: 'success', data: sessionData }
+            sessionData = response.data;
+          }
+        } else if (response && response.data) {
+          // Fallback for direct response
+          sessionData = response.data;
+        } else if (response) {
+          // Last fallback
+          sessionData = response;
+        }
+        
+        console.log('Extracted session data:', sessionData);
+        
+        // Debug: Check if summary and remarks are present
+        if (sessionData) {
+          console.log('Session data structure:', {
+            hasRemarks: !!(sessionData.remarks),
+            hasSummary: !!(sessionData.summary),
+            remarks: sessionData.remarks,
+            summary: sessionData.summary,
+            videoUrl: sessionData.video?.url
+          });
+        }
+        
+        setSession(sessionData);
       } catch (error) {
         console.error('Error loading session:', error);
       } finally {
@@ -47,11 +115,33 @@ export default function VideoSessionPage() {
   }, [sessionId]);
 
   const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
 
   const toggleSummary = (index: number) => {
     setExpandedSummary(expandedSummary === index ? null : index);
+  };
+
+  const handleVideoDoubleClick = () => {
+    if (videoRef.current) {
+      if (!isFullscreen) {
+        if (videoRef.current.requestFullscreen) {
+          videoRef.current.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+      setIsFullscreen(!isFullscreen);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -120,25 +210,62 @@ export default function VideoSessionPage() {
               <div className="text-xs text-gray-300">- LEARN. UPSKILL. ELEVATE. -</div>
             </div>
 
-            {/* Main Text */}
+            {/* Video Player */}
             <div className="flex-1 flex flex-col justify-center">
-              <div className="max-w-4xl">
-                <h2 className="text-6xl font-bold text-white mb-4">Welcome</h2>
-                <div className="relative">
-                  <p className="text-2xl text-green-400 font-medium">
-                    TO UNLOCKING THE POTENTIAL OF AI AND MACHINE LEARNING
+              <div className="max-w-4xl mx-auto">
+                {/* Video Container */}
+                <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
+                  {session.video?.url ? (
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-contain cursor-pointer"
+                      onDoubleClick={handleVideoDoubleClick}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      controls
+                    >
+                      <source src={session.video.url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <div className="w-full h-64 bg-gray-800 flex items-center justify-center">
+                      <div className="text-center text-gray-400">
+                        <FaPlay className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg">No video available for this session</p>
+                        <p className="text-sm mt-2">Video URL: {session.video?.url || 'Not provided'}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Double-click hint overlay - only show if video is available */}
+                  {session.video?.url && (
+                    <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                      Double-click for fullscreen
+                    </div>
+                  )}
+                  
+                  {/* Play/Pause overlay button - only show if video is available */}
+                  {session.video?.url && (
+                    <button 
+                      onClick={handlePlayPause}
+                      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                      title={isPlaying ? "Pause video" : "Play video"}
+                    >
+                      {isPlaying ? (
+                        <FaPause className="text-gray-900 text-xl" />
+                      ) : (
+                        <FaPlay className="text-gray-900 text-xl ml-1" />
+                      )}
+                    </button>
+                  )}
+                </div>
+                
+                {/* Video Title */}
+                <div className="mt-4 text-center">
+                  <h2 className="text-2xl font-bold text-white mb-2">{session.sessionTitle}</h2>
+                  <p className="text-green-400 font-medium">
+                    Session #{session.sessionNo}
                   </p>
-                  <button 
-                    onClick={handlePlayPause}
-                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-                    title={isPlaying ? "Pause video" : "Play video"}
-                  >
-                    {isPlaying ? (
-                      <FaPause className="text-gray-900 text-xl" />
-                    ) : (
-                      <FaPlay className="text-gray-900 text-xl ml-1" />
-                    )}
-                  </button>
                 </div>
               </div>
             </div>
@@ -258,14 +385,19 @@ export default function VideoSessionPage() {
                 </div>
 
                 {/* Remarks */}
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaComments className="text-green-400 w-4 h-4" />
-                    <span className="text-green-400 text-sm font-medium">Remarks</span>
+                <div className="bg-gradient-to-r from-gray-700/80 to-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-gray-600/30 shadow-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-center w-8 h-8 bg-amber-500/20 rounded-lg">
+                      <FaComments className="text-amber-400 w-4 h-4" />
+                    </div>
+                    <span className="text-amber-400 text-sm font-medium">Remarks</span>
                   </div>
-                  <p className="text-white font-semibold">
-                    {session.summary?.description || 'Excellent progress in session fundamentals'}
-                  </p>
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-2 h-2 bg-amber-400 rounded-full mt-2"></div>
+                    <p className="text-white font-semibold text-sm leading-relaxed">
+                      {session.remarks || 'No remarks available for this session.'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -273,39 +405,90 @@ export default function VideoSessionPage() {
             {/* Session Summary */}
             {session.summary && (
               <div>
-                <h3 className="text-green-400 font-semibold text-lg mb-4">Session Summary</h3>
-                <div className="space-y-2">
+                <h3 className="text-green-400 font-semibold text-lg mb-4 flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-lg">
+                    <FaComments className="w-5 h-5 text-white" />
+                  </div>
+                  Session Summary
+                </h3>
+                <div className="space-y-3">
                   {session.summary.items && Array.isArray(session.summary.items) ? (
                     session.summary.items.map((item: any, index: number) => (
                       <div 
                         key={index}
-                        className="bg-gray-700 rounded-lg overflow-hidden"
+                        className="bg-gradient-to-r from-gray-700/80 to-gray-800/80 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-600/30 shadow-lg"
                       >
                         <button
                           onClick={() => toggleSummary(index)}
-                          className="w-full p-3 flex justify-between items-center text-left hover:bg-gray-600 transition-colors"
+                          className="w-full p-4 flex justify-between items-center text-left hover:bg-gray-600/50 transition-all duration-300"
                         >
-                          <span className="text-sm font-medium text-gray-200 truncate">
-                            {item.title || `Topic ${index + 1}`}
-                          </span>
-                          <FaPlus 
-                            className={`w-4 h-4 text-gray-400 transition-transform ${
-                              expandedSummary === index ? 'rotate-45' : ''
-                            }`}
-                          />
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center justify-center w-8 h-8 bg-green-500/20 rounded-lg">
+                              <span className="text-green-400 text-sm font-bold">{index + 1}</span>
+                            </div>
+                            <span className="text-sm font-medium text-gray-200 truncate">
+                              {item.title || `Topic ${index + 1}`}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <motion.div
+                              animate={{ rotate: expandedSummary === index ? 45 : 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="flex items-center justify-center w-6 h-6 bg-green-500/20 rounded-lg"
+                            >
+                              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                            </motion.div>
+                          </div>
                         </button>
                         {expandedSummary === index && (
-                          <div className="px-3 pb-3">
-                            <p className="text-xs text-gray-300">{item.description || 'No description available'}</p>
-                          </div>
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="px-4 pb-4"
+                          >
+                            <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-600/30">
+                              <p className="text-xs text-gray-300 leading-relaxed">
+                                {item.description || 'No description available'}
+                              </p>
+                            </div>
+                          </motion.div>
                         )}
                       </div>
                     ))
                   ) : (
-                    <div className="bg-gray-700 rounded-lg p-4">
-                      <p className="text-sm text-gray-300">No summary items available</p>
+                    <div className="bg-gradient-to-r from-gray-700/80 to-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-gray-600/30 shadow-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-gray-500/20 rounded-lg">
+                          <FaComments className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <p className="text-sm text-gray-300">No summary items available</p>
+                      </div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Summary Description */}
+            {session.summary?.description && (
+              <div className="mt-6">
+                <h3 className="text-green-400 font-semibold text-lg mb-4 flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-lg">
+                    <FaComments className="w-5 h-5 text-white" />
+                  </div>
+                  Summary Description
+                </h3>
+                <div className="bg-gradient-to-r from-gray-700/80 to-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-gray-600/30 shadow-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      {session.summary.description}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

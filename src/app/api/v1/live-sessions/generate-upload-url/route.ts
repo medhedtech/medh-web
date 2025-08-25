@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiBaseUrl } from '@/apis/config';
 /**
  * POST handler to generate S3 presigned URL for video upload
  * @param request - The incoming request with batchObjectId, studentName, fileName, fileType
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Generate presigned URL from backend
     const response = await fetch(`${BASE_URL}/live-classes/generate-upload-url`, {

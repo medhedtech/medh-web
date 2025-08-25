@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: false,
   eslint: {
     ignoreDuringBuilds: true,
@@ -10,7 +11,6 @@ const nextConfig = {
   staticPageGenerationTimeout: 1800,
   generateBuildId: async () => `build-${Date.now()}`,
 
-  // ✅ Inject environment variables from Amplify or shell
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
@@ -24,15 +24,25 @@ const nextConfig = {
   },
 
   experimental: {
-    workerThreads: false,
     cpus: 1,
-    optimizeCss: false, // Disable CSS optimization to prevent preload warnings
     optimizePackageImports: ['@radix-ui/react-icons'],
-    // Disable CSS preloading to prevent warnings
     optimizeServerReact: false,
-    // Disable CSS preloading completely
-    optimizeFonts: false,
   },
+  
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/@swc/core-linux-x64-gnu',
+      'node_modules/@swc/core-linux-x64-musl',
+      'node_modules/@esbuild/linux-x64',
+      'node_modules/webpack/lib',
+      'node_modules/terser/dist',
+      'node_modules/next/dist/build',
+      'node_modules/next/dist/compiled/webpack',
+      'node_modules/next/dist/compiled/terser',
+      'node_modules/next/node_modules/@img',
+    ],
+  },
+
   transpilePackages: [
     '@floating-ui/core',
     '@floating-ui/dom',
@@ -41,14 +51,16 @@ const nextConfig = {
     'react-remove-scroll',
     '@jridgewell/resolve-uri'
   ],
+
   trailingSlash: true,
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'medh-documents.s3.amazonaws.com' },
       { protocol: 'https', hostname: 'medhdocuments.s3.ap-south-1.amazonaws.com' },
       { protocol: 'https', hostname: 'example.com' },
-      { protocol: 'https', hostname: '**.amazonaws.com' },
-      { protocol: 'https', hostname: '**.cloudfront.net' },
+      { protocol: 'https', hostname: '.amazonaws.com' },
+      { protocol: 'https', hostname: '.cloudfront.net' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'cdn.jsdelivr.net' },
       { protocol: 'https', hostname: 'i.pravatar.cc' },
@@ -66,7 +78,9 @@ const nextConfig = {
     unoptimized: true,
     loader: 'default',
   },
+
   productionBrowserSourceMaps: false,
+  generateEtags: false,
 
   async headers() {
     return [
@@ -74,27 +88,15 @@ const nextConfig = {
         source: '/:all*(svg|jpg|png|webp|avif)',
         locale: false,
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       {
         source: '/_next/static/css/:path*',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Link',
-            value: '</_next/static/css/:path*>; rel=preload; as=style',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Link', value: '</_next/static/css/:path*>; rel=preload; as=style' },
         ],
       },
       {
@@ -110,62 +112,14 @@ const nextConfig = {
     ];
   },
 
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       path: false,
       os: false,
     };
-
-    // Disable CSS preloading to prevent warnings
-    if (!isServer && !dev) {
-      config.optimization.splitChunks = {
-        ...config.optimization.splitChunks,
-        cacheGroups: {
-          ...config.optimization.splitChunks.cacheGroups,
-          default: false,
-          vendors: false,
-          // Only create vendor chunks for JS, not CSS
-          vendor: {
-            name: 'vendor',
-            chunks: 'all',
-            test: /node_modules/,
-            priority: 20,
-          },
-        },
-      };
-    }
-
-    // Disable CSS preloading and optimize CSS loading
-    config.plugins = config.plugins.filter(plugin => {
-      return plugin.constructor.name !== 'MiniCssExtractPlugin';
-    });
-
-    // Add CSS preload optimization
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        ...config.optimization.splitChunks,
-        cacheGroups: {
-          ...config.optimization.splitChunks.cacheGroups,
-          styles: {
-            name: 'styles',
-            test: /\.css$/,
-            chunks: 'all',
-            enforce: true,
-          },
-        },
-      },
-    };
-
     return config;
-  },
-
-  // Disable CSS preloading
-  onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
   },
 };
 

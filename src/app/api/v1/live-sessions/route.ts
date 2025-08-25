@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiBaseUrl } from '@/apis/config';
 /**
  * GET handler to fetch live sessions with filtering and pagination
  * @param request - The incoming request
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const page = searchParams.get('page') || '1';
     const limit = searchParams.get('limit') || '20';
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     console.log('Next.js API Route - BASE_URL:', BASE_URL);
     console.log('Next.js API Route - Request URL:', request.url);
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Create session in backend
     const response = await fetch(`${BASE_URL}/live-classes/sessions`, {

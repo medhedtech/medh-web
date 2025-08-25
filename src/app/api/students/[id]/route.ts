@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiBaseUrl } from '@/apis/config';
 
 /**
  * GET handler to fetch a student by ID
@@ -19,7 +20,7 @@ export async function GET(
       );
     }
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.medh.co/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Fetch student data
     const response = await fetch(`${BASE_URL}/students/get/${params.id}`, {

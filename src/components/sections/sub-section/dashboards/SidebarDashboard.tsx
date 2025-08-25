@@ -792,7 +792,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
     }
   };
 
-  // Modern student sidebar items
+  // Modern student sidebar items - Rearranged in requested order
   const studentMenuItems: MenuItem[] = [
     {
       name: "Dashboard",
@@ -800,7 +800,7 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <HomeIcon className="w-5 h-5" />
     },
     {
-      name: "Enrolled Courses",
+      name: "My Courses",
       path: formatRoute("student", "enrolled-courses"),
       icon: <BookOpen className="w-5 h-5" />,
       subItems: [
@@ -832,78 +832,19 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       ]
     },
     {
-      name: "Upcoming Classes",
-      path: formatRoute("student", "upcoming-classes"),
-      icon: <Calendar className="w-5 h-5" />,
+      name: "My Demo Classes",
+      path: formatRoute("student", "demo-classes"),
+      icon: <MonitorPlay className="w-5 h-5" />,
       subItems: [
         {
-          name: "Course Schedule",
-          path: formatRoute("student", "upcoming-classes"),
+          name: "Upcoming Demo",
+          path: formatRoute("student", "demo-classes"),
           icon: <CalendarDays className="w-4 h-4" />
         },
         {
-          name: "Session Count",
-          path: formatRoute("student", "upcoming-classes") + "?view=sessions",
-          icon: <BarChart3 className="w-4 h-4" />
-        },
-        {
-          name: "Online Links",
-          path: formatRoute("student", "upcoming-classes") + "?view=links",
-          icon: <LinkIcon className="w-4 h-4" />
-        }
-      ]
-    },
-    {
-      name: "Recent Announcements",
-      path: formatRoute("student", "announcements"),
-      icon: <Bell className="w-5 h-5" />
-    },
-    {
-      name: "Progress Overview",
-      path: formatRoute("student", "progress"),
-      icon: <BarChart3 className="w-5 h-5" />
-    },
-    {
-      name: "Free Courses",
-      path: formatRoute("student", "free-courses"),
-      icon: <Gift className="w-5 h-5" />,
-      subItems: [
-        {
-          name: "View All",
-          path: formatRoute("student", "free-courses"),
-          icon: <Eye className="w-4 h-4" />
-        },
-        {
-          name: "My Progress",
-          path: formatRoute("student", "free-courses") + "?view=progress",
-          icon: <TrendingUp className="w-4 h-4" />
-        }
-      ]
-    },
-    {
-      name: "My Demo Classes",
-      path: formatRoute("student", "demo-classes"),
-      icon: <MonitorPlay className="w-5 h-5" />
-    },
-    {
-      name: "My Membership",
-      path: formatRoute("student", "membership"),
-      icon: <Crown className="w-5 h-5" />
-    },
-    {
-      name: "My Resources",
-      path: formatRoute("student", "resources"),
-      icon: <FolderOpen className="w-5 h-5" />,
-      subItems: [
-        {
-          name: "Course Materials",
-          path: formatRoute("student", "lesson-course-materials"),
-          icon: <FileText className="w-4 h-4" />
-        },
-        {
-          name: "Quizzes & Assignments",
-          path: formatRoute("student", "assignments"),
-          icon: <Clipboard className="w-4 h-4" />
+          name: "Demo History",
+          path: formatRoute("student", "demo-classes") + "?view=history",
+          icon: <History className="w-4 h-4" />
         }
       ]
     },
@@ -926,6 +867,11 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
           name: "Recorded Sessions",
           path: formatRoute("student", "access-recorded-sessions"),
           icon: <Video className="w-4 h-4" />
+        },
+        {
+          name: "Session Count",
+          path: formatRoute("student", "upcoming-classes") + "?view=sessions",
+          icon: <BarChart3 className="w-4 h-4" />
         }
       ]
     },
@@ -935,14 +881,136 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <Award className="w-5 h-5" />
     },
     {
-      name: "Feedback & Support",
-      path: formatRoute("student", "feedback"),
-      icon: <LifeBuoy className="w-5 h-5" />
+      name: "My Membership",
+      path: formatRoute("student", "membership"),
+      icon: <Crown className="w-5 h-5" />
     },
     {
-      name: "Apply for Placement",
+      name: "My Progress",
+      path: formatRoute("student", "progress"),
+      icon: <BarChart3 className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Overall Progress",
+          path: formatRoute("student", "progress"),
+          icon: <TrendingUp className="w-4 h-4" />
+        },
+        {
+          name: "Course Analytics",
+          path: formatRoute("student", "progress") + "?view=analytics",
+          icon: <BarChart className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Resources",
+      path: formatRoute("student", "resources"),
+      icon: <FolderOpen className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Course Materials",
+          path: formatRoute("student", "lesson-course-materials"),
+          icon: <FileText className="w-4 h-4" />
+        },
+        {
+          name: "Downloads",
+          path: formatRoute("student", "resources") + "?view=downloads",
+          icon: <Download className="w-4 h-4" />
+        },
+        {
+          name: "Study Guides",
+          path: formatRoute("student", "resources") + "?view=guides",
+          icon: <BookOpen className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Assignments",
+      path: formatRoute("student", "assignments"),
+      icon: <Clipboard className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Pending Assignments",
+          path: formatRoute("student", "assignments"),
+          icon: <Clock className="w-4 h-4" />
+        },
+        {
+          name: "Submitted Work",
+          path: formatRoute("student", "assignments") + "?view=submitted",
+          icon: <CheckCircle className="w-4 h-4" />
+        },
+        {
+          name: "Grades & Feedback",
+          path: formatRoute("student", "assignments") + "?view=grades",
+          icon: <Star className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Quizzes",
+      path: formatRoute("student", "quiz"),
+      icon: <ClipboardList className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Available Quizzes",
+          path: formatRoute("student", "quiz"),
+          icon: <ListChecks className="w-4 h-4" />
+        },
+        {
+          name: "Quiz Results",
+          path: formatRoute("student", "quiz") + "?view=results",
+          icon: <BarChart className="w-4 h-4" />
+        },
+        {
+          name: "Practice Tests",
+          path: formatRoute("student", "quiz") + "?view=practice",
+          icon: <Repeat className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Payments",
+      path: formatRoute("student", "payments"),
+      icon: <CreditCard className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Payment History",
+          path: formatRoute("student", "payments"),
+          icon: <History className="w-4 h-4" />
+        },
+        {
+          name: "Pending Payments",
+          path: formatRoute("student", "payments") + "?view=pending",
+          icon: <Clock className="w-4 h-4" />
+        },
+        {
+          name: "Invoices",
+          path: formatRoute("student", "payments") + "?view=invoices",
+          icon: <FileSpreadsheet className="w-4 h-4" />
+        }
+      ]
+    },
+    {
+      name: "Placement",
       path: formatRoute("student", "apply"),
-      icon: <Briefcase className="w-5 h-5" />
+      icon: <Briefcase className="w-5 h-5" />,
+      subItems: [
+        {
+          name: "Apply for Placement",
+          path: formatRoute("student", "apply"),
+          icon: <UserPlus className="w-4 h-4" />
+        },
+        {
+          name: "Application Status",
+          path: formatRoute("student", "apply") + "?view=status",
+          icon: <CheckCircle className="w-4 h-4" />
+        },
+        {
+          name: "Job Opportunities",
+          path: formatRoute("student", "apply") + "?view=jobs",
+          icon: <Building className="w-4 h-4" />
+        }
+      ]
     }
   ];
 

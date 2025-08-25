@@ -26,6 +26,8 @@ import {
   type TEnrollmentStatus,
   type IBatchWithDetails
 } from '@/apis/instructor-assignments';
+import { liveClassesAPI } from '@/apis/liveClassesAPI';
+import { getAuthToken, isAuthenticated } from '@/utils/auth';
 
 interface IStudent {
   _id: string;
@@ -123,12 +125,42 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
   const loadStudents = async () => {
     try {
       setLoading(true);
-      // In a real app, these would be actual API calls
-      setStudents(mockEnrolledStudents);
-      setAvailableStudents(mockAvailableStudents);
+      
+      // Fetch all students from the student collection
+      console.log('🔍 Fetching all students for enrollment...');
+      const response = await liveClassesAPI.getStudents();
+      console.log('📥 Students API Response:', response);
+      
+      if (response.data && response.data.data) {
+        const allStudents = response.data.data;
+        console.log('📋 Total students found:', allStudents.length);
+        
+        // Transform the data to match our interface
+        const transformedStudents: IStudent[] = allStudents.map((student: any) => ({
+          _id: student._id,
+          full_name: student.full_name || 'Unknown Student',
+          email: student.email || 'no-email@example.com',
+          phone_number: student.phone_numbers?.[0]?.number || '',
+          role: student.role || ['Student'],
+          status: 'active' as TEnrollmentStatus
+        }));
+        
+        // For now, we'll show all students as available
+        // In a real implementation, you'd filter out already enrolled students
+        setAvailableStudents(transformedStudents);
+        setStudents([]); // Start with empty enrolled students
+        
+        console.log('✅ Students loaded successfully:', transformedStudents.length);
+      } else {
+        console.log('❌ No students data found');
+        setAvailableStudents([]);
+        setStudents([]);
+      }
     } catch (error) {
-      console.error('Error loading students:', error);
+      console.error('❌ Error loading students:', error);
       showToast.error('Failed to load students');
+      setAvailableStudents([]);
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -136,13 +168,60 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
 
   const handleEnrollStudent = async (studentId: string) => {
     try {
-      // In a real app, this would be an actual API call
-      // await enrollmentAPI.enrollStudent(studentId, {
-      //   courseId: batch.course,
-      //   batchId: batch._id!,
-      //   enrollment_type: 'batch'
-      // });
+      // Check if user is authenticated
+      if (!isAuthenticated()) {
+        console.log('❌ User not authenticated');
+        showToast.error('Please log in to enroll students');
+        return;
+      }
 
+      const token = getAuthToken();
+      console.log('🔐 Auth token available:', !!token);
+      
+      if (!token) {
+        console.log('❌ No authentication token found');
+        showToast.error('Authentication token not found. Please log in again.');
+        return;
+      }
+      
+      console.log('🎯 Enrolling student:', studentId, 'in batch:', batch._id);
+      console.log('📚 Course ID:', batch.course);
+      console.log('📋 Batch ID:', batch._id);
+      console.log('📊 Full batch object:', batch);
+      
+      // Validate that we have real course and batch IDs
+      if (!batch.course || !batch._id) {
+        console.log('❌ Missing course or batch ID');
+        showToast.error('Invalid course or batch information. Please check batch data.');
+        return;
+      }
+      
+      // Validate ObjectId format
+      const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+      if (!objectIdRegex.test(batch.course)) {
+        console.log('❌ Invalid ObjectId format for course:', batch.course);
+        showToast.error('Invalid course ID format');
+        return;
+      }
+      
+      if (!objectIdRegex.test(batch._id)) {
+        console.log('❌ Invalid ObjectId format for batch:', batch._id);
+        showToast.error('Invalid batch ID format. Please ensure batch exists in database.');
+        return;
+      }
+      
+      // For development/testing: If batch ID is invalid, show helpful message
+      console.log('🔍 Batch validation passed. Proceeding with enrollment...');
+      
+      // Make real API call to enroll student
+      const response = await enrollmentAPI.enrollStudent(studentId, {
+        courseId: batch.course,
+        batchId: batch._id!,
+        enrollment_type: 'batch'
+      });
+      
+      console.log('✅ Enrollment API Response:', response);
+      
       // Move student from available to enrolled
       const student = availableStudents.find(s => s._id === studentId);
       if (student) {
@@ -151,9 +230,39 @@ const BatchStudentManagement: React.FC<BatchStudentManagementProps> = ({
         showToast.success(`${student.full_name} enrolled successfully`);
         onStudentUpdate();
       }
-    } catch (error) {
-      console.error('Error enrolling student:', error);
-      showToast.error('Failed to enroll student');
+    } catch (error: any) {
+      console.error('❌ Error enrolling student:', error);
+      
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        showToast.error('Authentication required. Please log in again.');
+      } else if (error.response?.status === 403) {
+        showToast.error('Insufficient permissions. Please ensure you have admin/instructor access.');
+      } else if (error.response?.status === 400) {
+        if (error.response?.data?.message?.includes('Batch has reached maximum capacity')) {
+          showToast.error('This batch is full. Please select a different batch or increase capacity.');
+        } else if (error.response?.data?.message?.includes('Student is already enrolled')) {
+          showToast.error('Student is already enrolled in this batch.');
+        } else if (error.response?.data?.message?.includes('Student account is inactive')) {
+          showToast.error('Student account is inactive. Please activate the student account first.');
+        } else {
+          showToast.error(error.response?.data?.message || 'Bad request. Please check your data.');
+        }
+      } else if (error.response?.status === 404) {
+        if (error.response?.data?.message?.includes('Student not found')) {
+          showToast.error('Student not found. Please refresh and try again.');
+        } else if (error.response?.data?.message?.includes('Course not found')) {
+          showToast.error('Course not found. Please check course information.');
+        } else if (error.response?.data?.message?.includes('Batch not found')) {
+          showToast.error('Batch not found. Please check batch information.');
+        } else {
+          showToast.error('Resource not found. Please refresh and try again.');
+        }
+      } else if (error.response?.status === 500) {
+        showToast.error('Server error. Please try again later.');
+      } else {
+        showToast.error('Failed to enroll student. Please try again.');
+      }
     }
   };
 

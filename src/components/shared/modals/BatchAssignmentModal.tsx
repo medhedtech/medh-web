@@ -530,37 +530,101 @@ const BatchAssignmentModal: React.FC<BatchAssignmentModalProps> = ({
 
   const handleBatchEnrollment = async () => {
     if (!selectedBatch || selectedStudents.length === 0) {
-      showToast.error('Batch and student selection required');
+      showToast.error('Please select a batch and at least one student');
       return;
     }
 
+    console.log('🚀 Starting batch enrollment process...');
+    console.log('📋 Selected students:', selectedStudents);
+    console.log('📚 Course:', course?._id);
+    console.log('👥 Batch:', selectedBatch);
+
     try {
       setLoading(true);
-      const enrollmentPromises = selectedStudents.map(studentId =>
-        enrollmentAPI.enrollStudent(studentId, {
-          courseId: course!._id,
-          batchId: selectedBatch,
-          enrollment_type: 'batch'
-        })
-      );
-
-      const results = await Promise.allSettled(enrollmentPromises);
-      const successCount = results.filter(result => result.status === 'fulfilled').length;
-      const failureCount = results.length - successCount;
-
-      if (successCount > 0) {
-        showToast.success(`${successCount} students enrolled successfully`);
-        if (failureCount > 0) {
-          showToast.warning(`${failureCount} enrollments failed`);
+      
+      // Enroll each student one by one
+      const enrollmentResults = [];
+      
+      for (const studentId of selectedStudents) {
+        try {
+          console.log(`📝 Enrolling student ${studentId}...`);
+          
+          const response = await enrollmentAPI.enrollStudent(studentId, {
+            courseId: course!._id,
+            batchId: selectedBatch,
+            enrollment_type: 'batch',
+            enrollment_source: 'direct'
+          });
+          
+          console.log(`✅ Successfully enrolled student ${studentId}:`, response);
+          
+          enrollmentResults.push({
+            studentId,
+            success: true,
+            data: response.data
+          });
+          
+        } catch (error) {
+          console.error(`❌ Failed to enroll student ${studentId}:`, error);
+          
+          // Provide specific error messages
+          let errorMessage = 'Failed to enroll student';
+          if (error.response?.status === 404) {
+            errorMessage = 'Student, course, or batch not found';
+          } else if (error.response?.status === 400) {
+            errorMessage = error.response?.data?.message || 'Invalid enrollment data';
+          } else if (error.response?.status === 500) {
+            errorMessage = 'Server error - please try again';
+          } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = 'Cannot connect to server - please check if backend is running';
+          }
+          
+          enrollmentResults.push({
+            studentId,
+            success: false,
+            error: { ...error, userMessage: errorMessage }
+          });
         }
-        onSuccess();
-        onClose();
-      } else {
-        throw new Error('All enrollments failed');
       }
+
+      // Process results
+      const successfulEnrollments = enrollmentResults.filter(result => result.success);
+      const failedEnrollments = enrollmentResults.filter(result => !result.success);
+
+      console.log(`📊 Enrollment results: ${successfulEnrollments.length} success, ${failedEnrollments.length} failed`);
+
+      // Show success message
+      if (successfulEnrollments.length > 0) {
+        showToast.success(`${successfulEnrollments.length} student(s) enrolled successfully`);
+        
+        // Update the batch data with new enrollment count
+        if (batch && successfulEnrollments.length > 0) {
+          const updatedBatch = {
+            ...batch,
+            enrolled_students: (batch.enrolled_students || 0) + successfulEnrollments.length
+          };
+          
+          // Call onSuccess to refresh the parent component
+          onSuccess();
+        }
+      }
+
+      // Show error messages for failed enrollments
+      if (failedEnrollments.length > 0) {
+        failedEnrollments.forEach(result => {
+          const errorMessage = result.error?.userMessage || 'Enrollment failed';
+          showToast.error(errorMessage);
+        });
+      }
+
+      // Close modal if at least one enrollment was successful
+      if (successfulEnrollments.length > 0) {
+        onClose();
+      }
+
     } catch (error) {
-      console.error('Error enrolling students:', error);
-      showToast.error('Failed to enroll students');
+      console.error('❌ Error in batch enrollment process:', error);
+      showToast.error('Failed to process enrollment requests');
     } finally {
       setLoading(false);
     }

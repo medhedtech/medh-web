@@ -730,13 +730,13 @@ export const apiUrls = {
     }
   },
   Instructor: {
-    getAllInstructors: "/live-classes/instructors",
-    getInstructorById: "/auth/get-instructor",
-    createInstructor: "/auth/create",
-    updateInstructor: (id: string): string => `/auth/updateInstrucor/${id}`,
-    deleteInstructor: "/auth/delete-instrucor",
-    toggleInstructorsStatus: "/auth/toggle-status-instrucor",
-    uploadCSV: "/auth/upload-instructors-csv",
+    getAllInstructors: "/instructors/get",
+    getInstructorById: "/instructors/get",
+    createInstructor: "/instructors/create",
+    updateInstructor: (id: string): string => `/instructors/update/${id}`,
+    deleteInstructor: (id: string): string => `/instructors/delete/${id}`,
+    toggleInstructorsStatus: (id: string): string => `/instructors/toggle-status/${id}`,
+    uploadCSV: "/instructors/upload-csv",
     
     // Instructor-to-Course Assignment endpoints
     assignInstructorToCourse: "/auth/assign-instructor-to-course",
@@ -803,8 +803,9 @@ export const apiUrls = {
     getStudentById: (id: string): string => `/students/get/${id}`,
     createStudent: "/students/create",
     updateStudent: (id: string): string => `/students/update/${id}`,
-    deleteStudent: "/students/delete",
-    toggleStudentStatus: "/students/toggle-status",
+    deleteStudent: (id: string): string => `/students/delete/${id}`,
+    toggleStudentStatus: (id: string): string => `/students/toggle-status/${id}`,
+    uploadCSV: "/students/upload-csv",
     /**
      * Combined list of pending quizzes & assignments for the authenticated student
      */

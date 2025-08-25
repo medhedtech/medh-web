@@ -3,53 +3,30 @@ frontend:
   phases:
     preBuild:
       commands:
-        - "echo '=== Starting Amplify Build ==='"
-        - echo "🔧 Switching to Node.js 20 LTS"
-        - nvm install 20.19.0 || true
-        - nvm use 20.19.0
-        - echo "✅ Active Node version:" $(node -v)
-        - echo "✅ NPM version:" $(npm -v)
-        - "export NEXT_PUBLIC_API_URL='https://api.medh.co/api/v1'"
-        - "export NEXT_PUBLIC_APP_ENV='production'"
-        - "export JWT_SECRET='${JWT_SECRET:-fallback-jwt-secret-for-build}'"
-        - "export API_KEY_SALT='${API_KEY_SALT:-fallback-salt}'"
-        - "export SESSION_SECRET='${SESSION_SECRET:-fallback-session-secret}'"
-        - "export MONGO_URI='${MONGO_URI}'"
-        - "export NEXT_PUBLIC_GA_MEASUREMENT_ID='${NEXT_PUBLIC_GA_MEASUREMENT_ID}'"
-        - "export NEXT_PUBLIC_GOOGLE_CLIENT_ID='${NEXT_PUBLIC_GOOGLE_CLIENT_ID}'"
-        - "export OPENAI_API_KEY='${OPENAI_API_KEY}'"
-        # Memory optimization - Increase Node.js heap size significantly
-        - "export NODE_OPTIONS='--max-old-space-size=14336 --max-semi-space-size=512'"
-        - "export NEXT_TELEMETRY_DISABLED=1"
-        # Disable source maps to save memory
-        - "export GENERATE_SOURCEMAP=false"
-        # Optimize build performance and memory usage
-        - "export CI=true"
-        - "export DISABLE_ESLINT_PLUGIN=true"
-        - "npm config set legacy-peer-deps true"
-        - "npm config set fund false"
-        - "npm config set audit false"
-        - "npm config set update-notifier false"
-        - "echo 'Installing dependencies...'"
-        - "rm -rf node_modules"
-        - "npm ci --legacy-peer-deps"
-        - "echo 'Verifying critical build dependencies...'"
-        - "node -e \"console.log('TailwindCSS:', require('tailwindcss').version || 'OK')\" || echo 'TailwindCSS not found'"
-        - "node -e \"console.log('PostCSS:', require('postcss').version || 'OK')\" || echo 'PostCSS not found'"
-        - "node -e \"console.log('Autoprefixer:', require('autoprefixer').version || 'OK')\" || echo 'Autoprefixer not found'"
+        - node --version
+        - npm --version
+        - export NEXT_TELEMETRY_DISABLED=1
+        - export GENERATE_SOURCEMAP=false
+        - export NODE_OPTIONS="--max-old-space-size=8192"
+        - npm ci
     build:
       commands:
-        - "echo 'Building Next.js application...'"
-        # Memory optimization: Remove problematic cache files before build
-        - "rm -rf .next/cache/**/*"
-        # Option 1: Standard build (recommended)
-        - "npm run build"
-        # Option 2: Use optimization script if needed (uncomment if build still fails)
-        # - "chmod +x scripts/optimize-build.sh && ./scripts/optimize-build.sh"
-        # Clean up memory-intensive binaries after build
-        - "rm -f node_modules/@swc/core-linux-x64-gnu/swc.linux-x64-gnu.node || true"
-        - "rm -f node_modules/@swc/core-linux-x64-musl/swc.linux-x64-musl.node || true"
-        - "rm -f node_modules/@esbuild/linux-x64/bin/esbuild || true"
+        - npm run build
+
+        # Ensure traces exist in both legacy and new locations
+        - mkdir -p .next/server
+        - if [ -f ".next/server/trace" ]; then echo "server/trace exists"; elif [ -f ".next/trace" ]; then cp -f .next/trace .next/server/trace; else echo "{}" > .next/trace && cp -f .next/trace .next/server/trace; fi
+
+        # Ensure required-server-files.json is present
+        - if [ -f ".next/required-server-files.json" ]; then echo "required-server-files.json present"; else echo "{}" > .next/required-server-files.json; fi
+
+        # Sanity check
+        - ls -la .next | cat
+        - ls -la .next/server | cat
+        - test -f .next/trace || (echo "missing .next/trace" && exit 1)
+        - test -f .next/server/trace || (echo "missing .next/server/trace" && exit 1)
+        - test -f .next/required-server-files.json || (echo "missing required-server-files.json" && exit 1)
+
   artifacts:
     baseDirectory: .next
     files:
@@ -57,6 +34,5 @@ frontend:
   cache:
     paths:
       - node_modules/**/*
-      # Remove .next/cache from cache paths as it can cause memory issues
-      # - .next/cache/**/*
-appRoot: .
+      - .next/cache/**/*
+      - ~/.npm

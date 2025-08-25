@@ -31,7 +31,17 @@ import {
 } from "react-icons/fa";
 import { liveClassesAPI, IStudent, IInstructor, IGrade, IDashboard, IBatch, ISummaryItem } from "@/apis/liveClassesAPI";
 import { batchAPI } from "@/apis/batch";
+import { apiBaseUrl } from "@/apis/config";
 import { showToast } from "@/utils/toastManager";
+
+// Helper function to get the correct API URL based on environment
+const getApiUrl = (endpoint: string): string => {
+  const baseUrl = apiBaseUrl;
+  console.log('🌐 API Base URL:', baseUrl);
+  console.log('🔧 Environment:', process.env.NODE_ENV);
+  console.log('🌍 Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server');
+  return `${baseUrl}${endpoint}`;
+};
 
 interface ICreateLiveSessionFormProps {
   courseCategory: string;
@@ -63,8 +73,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
 
   // UI state
   const [loading, setLoading] = useState(false);
-  const [refreshingPreviousSession, setRefreshingPreviousSession] = useState(false);
-  const [sessionUpdated, setSessionUpdated] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
@@ -89,9 +97,11 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   const [grades, setGrades] = useState<IGrade[]>([]);
   const [dashboards, setDashboards] = useState<IDashboard[]>([]);
   const [batches, setBatches] = useState<IBatch[]>([]); // Add batches state
-  const [previousSession, setPreviousSession] = useState<any>(null);
   const [usingFallbackData, setUsingFallbackData] = useState(false);
   const [instructors, setInstructors] = useState<IInstructor[]>([]); // Add instructors state
+  const [selectedStudentLatestSession, setSelectedStudentLatestSession] = useState<any>(null); // Latest session for selected student
+  const [loadingLatestSession, setLoadingLatestSession] = useState(false); // Loading state for latest session
+  const [previousSession, setPreviousSession] = useState<any>(null); // Previous session data
 
   // Refs
   const studentDropdownRef = useRef<HTMLDivElement>(null);
@@ -176,6 +186,9 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   };
 
   const uploadVideos = async () => {
+    console.log('🔍 DEBUG - Upload Videos button clicked!');
+    console.log('🔍 selectedVideos.length:', selectedVideos.length);
+    
     if (selectedVideos.length === 0) {
       showToast.error('Please select videos to upload');
       return;
@@ -380,7 +393,8 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         
         // Setup and send request
         console.log('🌐 Setting up XMLHttpRequest...');
-        console.log('📡 Target URL: http://localhost:8080/api/v1/live-classes/upload-videos');
+        const uploadUrl = getApiUrl('/live-classes/upload-videos');
+        console.log('📡 Target URL:', uploadUrl);
         console.log('🔑 Auth token exists:', !!localStorage.getItem('token'));
         console.log('📦 FormData entries:', Array.from(uploadFormData.entries()).map(([key, value]) => ({
           key,
@@ -389,7 +403,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
           name: value instanceof File ? value.name : 'N/A'
         })));
         
-        xhr.open('POST', 'http://localhost:8080/api/v1/live-classes/upload-videos');
+        xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('token') || ''}`);
         
         console.log('🚀 Sending XMLHttpRequest...');
@@ -416,15 +430,20 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         }
       }
       
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('❌ Non-JSON response received:', textResponse.substring(0, 200));
-        throw new Error(`Server returned non-JSON response. Status: ${response.status}. Please check if backend server is running on port 8080.`);
+      // Try to parse response as JSON regardless of content-type
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('📋 Raw response text:', responseText.substring(0, 200));
+        
+        // Try to parse as JSON
+        result = JSON.parse(responseText);
+        console.log('✅ Successfully parsed JSON response');
+      } catch (parseError) {
+        console.error('❌ Failed to parse response as JSON:', parseError);
+        throw new Error(`Server returned invalid JSON response. Status: ${response.status}. Please check backend logs.`);
       }
       
-      const result = await response.json();
       console.log('✅ Success response data:', result);
         
         // Dismiss progress toast
@@ -436,8 +455,17 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       if (result.status === 'success' && result.data && result.data.videos) {
         const validVideos = result.data.videos.filter((video: any) => video && video.fileId);
         
-        // Update uploaded videos state
-        setUploadedVideos(prev => [...prev, ...validVideos]);
+              // DEBUG: Log video upload success
+      console.log('🔍 DEBUG - Video upload successful');
+      console.log('🔍 validVideos count:', validVideos.length);
+      console.log('🔍 About to update uploadedVideos state');
+      
+      // Update uploaded videos state
+      setUploadedVideos(prev => {
+        const newState = [...prev, ...validVideos];
+        console.log('🔍 DEBUG - Updated uploadedVideos count:', newState.length);
+        return newState;
+      });
         
         // Clear selected videos
         setSelectedVideos([]);
@@ -582,18 +610,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     });
   }, [students, grades, dashboards, usingFallbackData]);
 
-  // Monitor previousSession state changes
-  useEffect(() => {
-    console.log('🔄 PreviousSession State Changed:', {
-      hasPreviousSession: !!previousSession,
-      sessionTitle: previousSession?.sessionTitle,
-      sessionNo: previousSession?.sessionNo,
-      student: previousSession?.students?.[0]?.full_name,
-      grade: previousSession?.grades?.[0],
-      status: previousSession?.status,
-      updatedAt: previousSession?.updatedAt
-    });
-  }, [previousSession]);
+
 
   // Clean up null values from video arrays
   useEffect(() => {
@@ -628,281 +645,104 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   const loadInitialData = async () => {
     try {
       console.log('🔄 Loading initial data...');
-      console.log('📡 Making API calls to fetch real data from database...');
+      setLoading(true);
       
       // Load data from API with better error handling
-      const [studentsRes, gradesRes, dashboardsRes, instructorsRes, batchesRes, previousSessionRes] = await Promise.allSettled([
+      const [studentsRes, gradesRes, dashboardsRes, instructorsRes, batchesRes] = await Promise.allSettled([
         liveClassesAPI.getStudents(),
         liveClassesAPI.getGrades(),
         liveClassesAPI.getDashboards(),
         liveClassesAPI.getInstructors(),
-        liveClassesAPI.getAllBatches(),
-        liveClassesAPI.getPreviousSession()
+        liveClassesAPI.getAllBatches()
       ]);
 
-      console.log('API Responses:', {
-        students: studentsRes,
-        grades: gradesRes,
-        dashboards: dashboardsRes,
-        instructors: instructorsRes,
-        batches: batchesRes,
-        previousSession: previousSessionRes
-      });
+      console.log('📊 API Responses received');
 
-      // Handle different response structures more robustly
-      const studentsData = studentsRes.status === 'fulfilled' ? 
-        ((studentsRes.value.data as any)?.data?.items || (studentsRes.value.data as any)?.items || studentsRes.value.data || []) : [];
-      const gradesData = gradesRes.status === 'fulfilled' ? 
-        (gradesRes.value.data?.data || gradesRes.value.data || gradesRes.value || []) : [];
-      const dashboardsData = dashboardsRes.status === 'fulfilled' ? 
-        (dashboardsRes.value.data?.data || dashboardsRes.value.data || dashboardsRes.value || []) : [];
-      const batchesData = batchesRes.status === 'fulfilled' ? 
-        (batchesRes.value.data?.data || batchesRes.value.data || batchesRes.value || []) : [];
-      const previousSessionData = previousSessionRes.status === 'fulfilled' ? 
-        (previousSessionRes.value.data?.data || previousSessionRes.value.data || previousSessionRes.value || null) : null;
+      // Process students data
+      let finalStudents: IStudent[] = [];
+      if (studentsRes.status === 'fulfilled' && studentsRes.value?.data) {
+        const response = studentsRes.value.data;
+        finalStudents = response?.data?.items || response?.items || response || [];
+        console.log('✅ Students loaded:', finalStudents.length);
+      } else {
+        console.error('❌ Students API failed:', studentsRes.reason);
+      }
 
-      // Instructors robust extraction
+      // Process grades data
+      let finalGrades: IGrade[] = [];
+      if (gradesRes.status === 'fulfilled' && gradesRes.value?.data) {
+        const response = gradesRes.value.data;
+        finalGrades = response?.data || response || [];
+        console.log('✅ Grades loaded:', finalGrades.length);
+      } else {
+        console.error('❌ Grades API failed:', gradesRes.reason);
+      }
+
+      // Process dashboards data
+      let finalDashboards: IDashboard[] = [];
+      if (dashboardsRes.status === 'fulfilled' && dashboardsRes.value?.data) {
+        const response = dashboardsRes.value.data;
+        finalDashboards = response?.data || response || [];
+        console.log('✅ Dashboards loaded:', finalDashboards.length);
+      } else {
+        console.error('❌ Dashboards API failed:', dashboardsRes.reason);
+      }
+
+      // Process instructors data
       let finalInstructors: IInstructor[] = [];
-      if (instructorsRes.status === 'fulfilled' && instructorsRes.value.data) {
-        const extracted = instructorsRes.value.data?.data?.items || instructorsRes.value.data?.items || instructorsRes.value.data || [];
-        finalInstructors = Array.isArray(extracted) ? extracted : [];
-      }
-
-      // Force use real data if available, regardless of structure
-      let finalStudents: any[] = [];
-      
-      if (studentsRes.status === 'fulfilled' && studentsRes.value.data) {
-        // Try multiple paths to get students data
-        const extractedStudents = studentsRes.value.data?.data?.items || 
-                                 studentsRes.value.data?.items || 
-                                 studentsRes.value.data || [];
-        finalStudents = Array.isArray(extractedStudents) ? extractedStudents : [];
-      }
-      
-      console.log('🔧 FORCED DATA EXTRACTION:', {
-        studentsResStatus: studentsRes.status,
-        studentsResData: studentsRes.status === 'fulfilled' ? studentsRes.value.data : 'rejected',
-        finalStudentsLength: finalStudents.length,
-        finalStudentsSample: Array.isArray(finalStudents) ? finalStudents.slice(0, 2) : 'Not array'
-      });
-
-      console.log('🔍 Raw API Response Details:', {
-        studentsRes: studentsRes.status === 'fulfilled' ? {
-          status: studentsRes.value.status,
-          data: studentsRes.value.data,
-          hasItems: !!studentsRes.value.data?.data?.items,
-          itemsCount: studentsRes.value.data?.data?.items?.length || 0
-        } : studentsRes.reason
-      });
-
-      console.log('Raw API Responses:', {
-        studentsRes: studentsRes.status === 'fulfilled' ? studentsRes.value : studentsRes.reason,
-        gradesRes: gradesRes.status === 'fulfilled' ? gradesRes.value : gradesRes.reason,
-        dashboardsRes: dashboardsRes.status === 'fulfilled' ? dashboardsRes.value : dashboardsRes.reason
-      });
-
-      console.log('Processed Data:', {
-        students: studentsData,
-        grades: gradesData,
-        dashboards: dashboardsData,
-        batches: batchesData,
-        previousSession: previousSessionData
-      });
-
-      console.log('🔍 Previous Session Data Debug:', {
-        previousSessionResStatus: previousSessionRes.status,
-        previousSessionResValue: previousSessionRes.status === 'fulfilled' ? previousSessionRes.value : previousSessionRes.reason,
-        previousSessionData: previousSessionData,
-        hasPreviousSession: !!previousSessionData,
-        sessionTitle: previousSessionData?.sessionTitle,
-        studentName: previousSessionData?.students?.[0]?.full_name,
-        gradesArray: previousSessionData?.grades,
-        instructorObject: previousSessionData?.instructorId
-      });
-
-      // Use the forced extraction results
-      const hasRealStudents = Array.isArray(finalStudents) && finalStudents.length > 0;
-      const hasRealGrades = Array.isArray(gradesData) && gradesData.length > 0;
-      const hasRealDashboards = Array.isArray(dashboardsData) && dashboardsData.length > 0;
-      const hasRealInstructors = Array.isArray(finalInstructors) && finalInstructors.length > 0;
-      
-      console.log('🎯 FINAL Data Availability Check:', {
-        hasRealStudents,
-        hasRealGrades,
-        hasRealDashboards,
-        hasRealInstructors,
-        finalStudentsLength: finalStudents.length,
-        finalGradesLength: gradesData.length
-      });
-      
-      // Use the forced extraction results directly
-      let finalGrades = hasRealGrades ? gradesData : [];
-      let finalDashboards = hasRealDashboards ? dashboardsData : [];
-      
-      // Deduplicate grades by _id to prevent duplicate key errors
-      if (hasRealGrades && Array.isArray(finalGrades)) {
-        const uniqueGrades = finalGrades.filter((grade, index, self) => 
-          index === self.findIndex(g => g._id === grade._id)
-        );
-        if (uniqueGrades.length !== finalGrades.length) {
-          console.log('🔧 Removed duplicate grades:', finalGrades.length - uniqueGrades.length);
-        }
-        finalGrades = uniqueGrades;
-      }
-      
-      // Deduplicate dashboards by _id to prevent duplicate key errors
-      if (hasRealDashboards && Array.isArray(finalDashboards)) {
-        const uniqueDashboards = finalDashboards.filter((dashboard, index, self) => 
-          index === self.findIndex(d => d._id === dashboard._id)
-        );
-        if (uniqueDashboards.length !== finalDashboards.length) {
-          console.log('🔧 Removed duplicate dashboards:', finalDashboards.length - uniqueDashboards.length);
-        }
-        finalDashboards = uniqueDashboards;
-      }
-      
-      // Use real data from database, with fallbacks for students and instructors
-      if (!hasRealStudents) {
-        console.log('❌ NO REAL STUDENTS DATA - Using fallback data');
-        // Add fallback student data from the database test
-        finalStudents = [
-          { _id: '689ba08c5eba793ac7f42a4e', full_name: 'Alice Johnson', email: 'alice.johnson@example.com' },
-          { _id: '689ba08c5eba793ac7f42a51', full_name: 'Bob Smith', email: 'bob.smith@example.com' },
-          { _id: '689ba08c5eba793ac7f42a54', full_name: 'Carol Davis', email: 'carol.davis@example.com' },
-          { _id: '689ba08c5eba793ac7f42a58', full_name: 'David Wilson', email: 'david.wilson@example.com' },
-          { _id: '689ba08c5eba793ac7f42a5b', full_name: 'Eva Brown', email: 'eva.brown@example.com' }
-        ];
+      if (instructorsRes.status === 'fulfilled' && instructorsRes.value?.data) {
+        const response = instructorsRes.value.data;
+        finalInstructors = response?.data?.items || response?.items || response || [];
+        console.log('✅ Instructors loaded:', finalInstructors.length);
       } else {
-        console.log('✅ REAL STUDENTS LOADED:', finalStudents.length, 'students');
-        // Deduplicate students by _id to prevent duplicate key errors
-        const uniqueStudents = finalStudents.filter((student, index, self) => 
-          index === self.findIndex(s => s._id === student._id)
-        );
-        if (uniqueStudents.length !== finalStudents.length) {
-          console.log('🔧 Removed duplicate students:', finalStudents.length - uniqueStudents.length);
-        }
-        finalStudents = uniqueStudents;
+        console.error('❌ Instructors API failed:', instructorsRes.reason);
       }
-      
-      // Instructors fallback/dedupe
-      if (!hasRealInstructors) {
-        console.log('❌ NO REAL INSTRUCTORS DATA - Using fallback data');
-        finalInstructors = [
-          { _id: 'instructor-1', full_name: 'Prof. Alice', email: 'alice@example.com' } as IInstructor,
-          { _id: 'instructor-2', full_name: 'Dr. Robert', email: 'robert@example.com' } as IInstructor
-        ];
+
+      // Process batches data
+      let finalBatches: IBatch[] = [];
+      if (batchesRes.status === 'fulfilled' && batchesRes.value?.data) {
+        const response = batchesRes.value.data;
+        finalBatches = response?.data || response || [];
+        console.log('✅ Batches loaded:', finalBatches.length);
       } else {
-        const uniqueInstructors = finalInstructors.filter((i, idx, self) => idx === self.findIndex(x => x._id === i._id));
-        if (uniqueInstructors.length !== finalInstructors.length) {
-          console.log('🔧 Removed duplicate instructors:', finalInstructors.length - uniqueInstructors.length);
-        }
-        finalInstructors = uniqueInstructors;
+        console.error('❌ Batches API failed:', batchesRes.reason);
       }
-      
-      console.log('🎯 Setting final data:', {
-        students: { count: finalStudents.length, sample: finalStudents[0] },
-        grades: { count: finalGrades.length, sample: finalGrades[0] },
-        dashboards: { count: finalDashboards.length, sample: finalDashboards[0] },
-        instructors: { count: finalInstructors.length, sample: finalInstructors[0] }
-      });
-      
-      console.log('🎯 About to set state with:', {
-        finalStudentsLength: finalStudents.length,
-        finalStudentsSample: Array.isArray(finalStudents) ? finalStudents.slice(0, 2) : 'Not array'
-      });
-      
-      // Check if we got any real data
-      const hasRealData = finalStudents.length > 0 || finalDashboards.length > 0 || finalGrades.length > 0 || finalInstructors.length > 0;
-      
-      if (hasRealData) {
-        // Set the real data to state
+
+      // Ensure all arrays are valid
+      finalStudents = Array.isArray(finalStudents) ? finalStudents : [];
+      finalGrades = Array.isArray(finalGrades) ? finalGrades : [];
+      finalDashboards = Array.isArray(finalDashboards) ? finalDashboards : [];
+      finalInstructors = Array.isArray(finalInstructors) ? finalInstructors : [];
+      finalBatches = Array.isArray(finalBatches) ? finalBatches : [];
+
+      // Set data to state
       setStudents(finalStudents);
       setGrades(finalGrades);
       setDashboards(finalDashboards);
       setInstructors(finalInstructors);
-      setBatches(batchesData);
-      setPreviousSession(previousSessionData);
+      setBatches(finalBatches);
       setUsingFallbackData(false);
-        console.log('🎉 Using real data from database');
-      } else {
-        console.log('⚠️ No real data received, using fallback data');
-        // Create fallback data for testing
-        const fallbackStudents = [
-          { _id: 'student-1', full_name: 'John Doe', email: 'john@example.com' },
-          { _id: 'student-2', full_name: 'Jane Smith', email: 'jane@example.com' },
-          { _id: 'student-3', full_name: 'Bob Johnson', email: 'bob@example.com' }
-        ];
-        const fallbackBatches = [
-          { _id: 'batch-1', batch_name: 'AI & Data Science - Batch A', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-2'] },
-          { _id: 'batch-2', batch_name: 'Digital Marketing - Batch B', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-2', 'student-3'] },
-          { _id: 'batch-3', batch_name: 'Personality Development - Batch C', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-3'] },
-          { _id: 'batch-4', batch_name: 'Vedic Mathematics - Batch D', batch_type: 'beginner', status: 'Active', enrolled_student_ids: ['student-1', 'student-2', 'student-3'] },
-          { _id: 'batch-5', batch_name: 'Public Speaking - Batch E', batch_type: 'intermediate', status: 'Active', enrolled_student_ids: ['student-2'] },
-          { _id: 'batch-6', batch_name: 'Web Development - Batch F', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-1'] }
-        ];
-        const fallbackGrades = [
-          { _id: 'grade-1', name: 'Grade 1', level: 1 },
-          { _id: 'grade-2', name: 'Grade 2', level: 2 },
-          { _id: 'grade-3', name: 'Grade 3', level: 3 }
-        ];
-        const fallbackDashboards = [
-          { _id: 'admin-dashboard', name: 'Admin Dashboard', type: 'admin' },
-          { _id: 'instructor-dashboard', name: 'Instructor Dashboard', type: 'instructor' }
-        ];
-        
-        setStudents(fallbackStudents);
-        setBatches(fallbackBatches);
-        setGrades(fallbackGrades);
-        setDashboards(fallbackDashboards);
-        setPreviousSession(null);
-        setUsingFallbackData(true);
-      }
-      
-      console.log('🎯 FINAL RESULT - DATA LOADED:', {
-        students: `${finalStudents.length} students ${hasRealStudents ? '(real)' : '(fallback)'}`,
-        grades: hasRealGrades ? `${finalGrades.length} grades` : '❌ NO GRADES',
-        dashboards: hasRealDashboards ? `${finalDashboards.length} dashboards` : '❌ NO DASHBOARDS',
-        batches: `${batchesData.length} batches from database`
+
+      console.log('🎉 Data loaded successfully:', {
+        students: finalStudents.length,
+        grades: finalGrades.length,
+        dashboards: finalDashboards.length,
+        instructors: finalInstructors.length,
+        batches: finalBatches.length
       });
+
     } catch (error) {
       console.error('❌ Error loading initial data:', error);
-      console.log('🔄 Loading fallback data due to API error...');
       
-      // Provide fallback data when API fails
-      const fallbackStudents = [
-        { _id: 'student-1', full_name: 'John Doe', email: 'john@example.com' },
-        { _id: 'student-2', full_name: 'Jane Smith', email: 'jane@example.com' },
-        { _id: 'student-3', full_name: 'Bob Johnson', email: 'bob@example.com' }
-      ];
-      const fallbackBatches = [
-        { _id: 'batch-1', batch_name: 'AI & Data Science - Batch A', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-2'] },
-        { _id: 'batch-2', batch_name: 'Digital Marketing - Batch B', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-2', 'student-3'] },
-        { _id: 'batch-3', batch_name: 'Personality Development - Batch C', batch_type: 'regular', status: 'Active', enrolled_student_ids: ['student-1', 'student-3'] },
-        { _id: 'batch-4', batch_name: 'Vedic Mathematics - Batch D', batch_type: 'beginner', status: 'Active', enrolled_student_ids: ['student-1', 'student-2', 'student-3'] },
-        { _id: 'batch-5', batch_name: 'Public Speaking - Batch E', batch_type: 'intermediate', status: 'Active', enrolled_student_ids: ['student-2'] },
-        { _id: 'batch-6', batch_name: 'Web Development - Batch F', batch_type: 'advanced', status: 'Active', enrolled_student_ids: ['student-1'] }
-      ];
-      const fallbackGrades = [
-        { _id: 'grade-1', name: 'Grade 1', level: 1 },
-        { _id: 'grade-2', name: 'Grade 2', level: 2 },
-        { _id: 'grade-3', name: 'Grade 3', level: 3 },
-        { _id: 'grade-4', name: 'Grade 4', level: 4 },
-        { _id: 'grade-5', name: 'Grade 5', level: 5 }
-      ];
-      const fallbackDashboards = [
-        { _id: 'admin-dashboard', name: 'Admin Dashboard', type: 'admin' },
-        { _id: 'instructor-dashboard', name: 'Instructor Dashboard', type: 'instructor' },
-        { _id: 'student-dashboard', name: 'Student Dashboard', type: 'student' }
-      ];
-      
-      setStudents(fallbackStudents);
-      setBatches(fallbackBatches);
-      setGrades(fallbackGrades);
-      setDashboards(fallbackDashboards);
-      setPreviousSession(null);
+      // Set empty arrays on error
+      setStudents([]);
+      setGrades([]);
+      setDashboards([]);
+      setInstructors([]);
+      setBatches([]);
       setUsingFallbackData(true);
-      
-      console.log('✅ Fallback data loaded successfully');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -911,6 +751,48 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Filter batches based on selected students - only show batches that contain at least one selected student
+  const getFilteredBatches = () => {
+    if (formData.students.length === 0) {
+      // If no students selected, show all batches
+      return batches.filter(batch => 
+        (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+        (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
+      );
+    }
+    
+    // Filter batches with robust fallback logic
+    return batches.filter(batch => {
+      // Strategy 1: Use enrolled_student_ids if available and not empty
+      const enrolledStudentIds = batch.enrolled_student_ids || [];
+      
+      if (Array.isArray(enrolledStudentIds) && enrolledStudentIds.length > 0) {
+        const hasSelectedStudent = formData.students.some(studentId => 
+          enrolledStudentIds.includes(studentId)
+        );
+        
+        const matchesSearch = (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+          (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase());
+        
+        return hasSelectedStudent && matchesSearch;
+      }
+      
+      // Strategy 2: Fallback - if enrolled_student_ids is missing/empty but enrolledStudents > 0
+      // Show the batch (let user decide) with a warning indicator
+      if ((batch.enrolledStudents || batch.enrolled_students || 0) > 0) {
+        console.log(`⚠️ Batch "${batch.batch_name || batch.name}" missing enrolled_student_ids, showing as available`);
+        
+        const matchesSearch = (batch.name || batch.batch_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+          (batch.code || batch.batch_code || '').toLowerCase().includes(batchSearchQuery.toLowerCase());
+        
+        return matchesSearch; // Show if it matches search, regardless of student selection
+      }
+      
+      // Strategy 3: If no student data at all, don't show this batch
+      return false;
+    });
+  };
 
   // Debug students state
   console.log('🔍 Students State Debug:', {
@@ -930,18 +812,52 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
   );
 
   // Handler functions
-  const handleStudentSelect = (studentId: string) => {
+  const handleStudentSelect = async (studentId: string) => {
+    console.log('👆 Student selected:', studentId);
+    
+    // Check current state before updating
+    const isCurrentlySelected = formData.students.includes(studentId);
+    console.log('📋 Is currently selected:', isCurrentlySelected);
+    
     setFormData(prev => {
       const isSelected = prev.students.includes(studentId);
       const newStudents = isSelected
         ? prev.students.filter(id => id !== studentId)
         : [...prev.students, studentId];
       
+      console.log('📝 Updated students list:', newStudents);
+      
+      // Check if current batch is still valid for the new student selection
+      let newBatchId = prev.batchId;
+      if (newStudents.length > 0 && prev.batchId) {
+        const currentBatch = batches.find(batch => batch._id === prev.batchId);
+        if (currentBatch) {
+          const batchStudentIds = currentBatch.enrolled_student_ids || currentBatch.enrolledStudentIds || currentBatch.students || [];
+          const isValidBatch = newStudents.some(studentId => batchStudentIds.includes(studentId));
+          
+          if (!isValidBatch) {
+            console.log('🔄 Clearing batch selection - not valid for selected students');
+            newBatchId = '';
+            setBatchSearchQuery('');
+          }
+        }
+      }
+      
       return {
         ...prev,
-        students: newStudents
+        students: newStudents,
+        batchId: newBatchId
       };
     });
+    
+    // Fetch latest session when a student is selected (not deselected)
+    if (!isCurrentlySelected) {
+      console.log('🎯 Fetching latest session for newly selected student:', studentId);
+      await handleStudentClick(studentId);
+    } else {
+      console.log('❌ Student deselected, clearing session data');
+      setSelectedStudentLatestSession(null);
+    }
   };
 
   const handleStudentRemove = (studentId: string) => {
@@ -970,6 +886,50 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       ...prev,
       grades: prev.grades.filter(id => id !== gradeId)
     }));
+  };
+
+  // Handle student click to fetch latest session
+  const handleStudentClick = async (studentId: string) => {
+    console.log('🔍 Student clicked:', studentId);
+    console.log('📋 Current selected students:', formData.students);
+    
+    // Clear previous session data first
+    setSelectedStudentLatestSession(null);
+    setLoadingLatestSession(true);
+    
+    try {
+      console.log('🚀 Fetching latest session for student:', studentId);
+      console.log('🔗 API URL being called:', `/live-sessions/students/${studentId}/latest-session`);
+      
+      const response = await liveClassesAPI.getStudentLatestSession(studentId);
+      console.log('📥 API Response:', response);
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response data:', response.data);
+      
+      if (response.data && response.data.data) {
+        const sessionData = response.data.data;
+        console.log('✅ Setting latest session data:', sessionData);
+        console.log('🎯 Session belongs to student:', sessionData.student?.full_name);
+        console.log('🆔 Student ID in session:', sessionData.student?._id);
+        console.log('🆔 Requested student ID:', studentId);
+        
+        // Verify that the session data belongs to the correct student
+        if (sessionData.student?._id === studentId) {
+          setSelectedStudentLatestSession(sessionData);
+        } else {
+          console.warn('⚠️ Session data student ID mismatch!');
+          setSelectedStudentLatestSession(null);
+        }
+      } else {
+        console.log('❌ No session data found');
+        setSelectedStudentLatestSession(null);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching student latest session:', error);
+      setSelectedStudentLatestSession(null);
+    } finally {
+      setLoadingLatestSession(false);
+    }
   };
 
 
@@ -1044,6 +1004,11 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       return;
     }
     
+    // DEBUG: Log uploadedVideos state before form submission
+    console.log('🔍 DEBUG - Before form submission:');
+    console.log('🔍 uploadedVideos state:', uploadedVideos);
+    console.log('🔍 uploadedVideos.length:', uploadedVideos.length);
+    
     setLoading(true);
     
     // Show loading notification
@@ -1054,15 +1019,45 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     try {
       // Create session with videos if uploaded
       const validUploadedVideos = uploadedVideos.filter(video => video !== null && video !== undefined);
+      
+      // DEBUG: Log current state
+      console.log('🔍 DEBUG - Form submission started');
+      console.log('🔍 uploadedVideos count:', uploadedVideos.length);
+      console.log('🔍 validUploadedVideos count:', validUploadedVideos.length);
+      
+      // Prepare video data for database
+      let videoData = {
+        fileId: 'no-video',
+        name: 'No video uploaded',
+        size: 0,
+        url: '#'
+      };
+      
+      // If videos are uploaded, use the first video's data
+      if (validUploadedVideos.length > 0) {
+        const firstVideo = validUploadedVideos[0];
+        console.log('🔍 DEBUG - First video found');
+        
+        videoData = {
+          fileId: firstVideo.fileId || firstVideo.s3Path || 'no-video',
+          name: firstVideo.name || 'Uploaded video',
+          size: firstVideo.size || 0,
+          url: firstVideo.url || '#'
+        };
+        
+        console.log('📹 Using video data for database - File size:', videoData.size, 'bytes');
+      } else {
+        console.log('⚠️ WARNING - No uploaded videos found, using default video data');
+        console.log('⚠️ This means either:');
+        console.log('   1. No videos were uploaded');
+        console.log('   2. Video upload failed');
+        console.log('   3. uploadedVideos state is not properly set');
+      }
+      
       const sessionData = {
         ...formData,
-        video: validUploadedVideos.length > 0 ? validUploadedVideos[0] : {
-          fileId: 'no-video',
-          name: 'No video uploaded',
-          size: 0,
-          url: '#'
-        },
-        videos: validUploadedVideos // Include all uploaded videos
+        video: videoData,
+        videos: validUploadedVideos // Include all uploaded videos for reference
       };
       
       console.log('📝 Creating session with data:', {
@@ -1070,14 +1065,21 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         sessionNo: sessionData.sessionNo,
         studentsCount: sessionData.students.length,
         gradesCount: sessionData.grades.length,
-        dashboard: sessionData.dashboard,
-        hasVideo: !!sessionData.video
+        hasVideo: !!sessionData.video && sessionData.video.fileId !== 'no-video',
+        uploadedVideosCount: validUploadedVideos.length
       });
       
-      console.log('🔍 Full session data being sent:', JSON.stringify(sessionData, null, 2));
-      console.log('🔍 Session number being sent:', sessionData.sessionNo);
-      console.log('🔍 Session number type:', typeof sessionData.sessionNo);
+      console.log('🔍 Session data prepared for submission');
       console.log('🔍 Session number length:', sessionData.sessionNo?.length);
+      
+      // Additional logging for video data
+      if (validUploadedVideos.length > 0) {
+        console.log('📹 Video data being saved to database');
+        console.log('   - File size:', videoData.size, 'bytes');
+        console.log('   - Total uploaded videos:', validUploadedVideos.length);
+      } else {
+        console.log('📹 No videos uploaded - using default video data');
+      }
       
       const response = isEditMode 
         ? await liveClassesAPI.updateSession(editSessionId!, sessionData)
@@ -1089,6 +1091,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
       console.log('📋 Response data:', response?.data);
       console.log('📋 Response status:', response?.status);
       console.log('📋 Response statusText:', response?.statusText);
+      
+      // Log video data from response
+      if (response?.data?.data?.video) {
+        console.log('📹 Video data received from server');
+        console.log('📹 Has video:', response.data.data.hasVideo);
+      }
       
       if (response.data?.data?.success || response.data?.success) {
         // Dismiss loading toast
@@ -1119,11 +1127,15 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         const videoCount = validUploadedVideos.length;
         const videoText = videoCount > 0 ? ` with ${videoCount} video(s)` : '';
         
-        // Show FORM SAVE SUCCESS POPUP
+        // Show FORM SAVE SUCCESS POPUP with video details
+        const videoDetailsText = validUploadedVideos.length > 0 
+          ? `\n📹 Video Details:\n   • File: ${videoData.name}\n   • Size: ${formatFileSize(videoData.size)}\n   • S3 Path: ${videoData.fileId}\n   • URL: ${videoData.url !== '#' ? 'Generated' : 'Not available'}`
+          : '\n📹 No videos uploaded';
+          
         showToast.success(
-          `🎉 FORM SAVED SUCCESSFULLY! 🎉\n\n📝 Live session "${sessionData.sessionTitle}" ${isEditMode ? 'updated' : 'created'}\n💾 Session saved to database\n📹 ${videoCount} video(s) included`,
+          `🎉 FORM SAVED SUCCESSFULLY! 🎉\n\n📝 Live session "${sessionData.sessionTitle}" ${isEditMode ? 'updated' : 'created'}\n💾 Session saved to database\n📹 ${videoCount} video(s) included${videoDetailsText}`,
           {
-            duration: 8000,
+            duration: 10000,
             style: {
               background: 'linear-gradient(135deg, #059669, #047857)',
               color: 'white',
@@ -1240,31 +1252,43 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
     }));
   };
 
+  // Add loading state display after all hooks are declared
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading form data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Clean Header */}
+      {/* Clean Header - Fully Responsive */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
             <Link
               href={backUrl}
-              className="w-10 h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg flex items-center justify-center transition-colors flex-shrink-0"
             >
-              <FaArrowLeft className="text-gray-600 dark:text-gray-300 w-4 h-4" />
+              <FaArrowLeft className="text-gray-600 dark:text-gray-300 w-3 h-3 sm:w-4 sm:h-4" />
             </Link>
             
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <FaVideo className="w-5 h-5 text-white" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <FaVideo className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-            <div>
-                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 dark:text-white truncate">
                     {isEditMode ? 'Edit Live Session Recording' : 'Upload Live Session Recording'}
-              </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  </h1>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
                     {isEditMode ? 'Update session details and recordings' : 'Upload and manage session recordings for students'}
-              </p>
+                  </p>
                 </div>
               </div>
               {usingFallbackData && (
@@ -1280,126 +1304,18 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Sidebar - Previous Session */}
-          <div className="xl:col-span-1 xl:sticky xl:top-24">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-md">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-md flex items-center justify-center">
-                  <FaClock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                </div>
-                Latest Session
-                {refreshingPreviousSession && (
-                  <FaSpinner className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-spin" />
-                )}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                {refreshingPreviousSession ? 'Updating session details...' : 'Latest session details'}
-              </p>
-              
-              {previousSession ? (
-                <div key={`session-${previousSession._id}-${previousSession.updatedAt || Date.now()}-${sessionUpdated ? 'updated' : 'normal'}-${forceUpdate}`} className={`space-y-4 ${refreshingPreviousSession ? 'animate-pulse' : ''} ${sessionUpdated ? 'ring-2 ring-green-500 ring-opacity-50 rounded-lg' : ''}`}>
+      
 
-                  <div className="flex items-center justify-between">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      previousSession.status === 'completed' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                        : previousSession.status === 'live'
-                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                        : previousSession.status === 'cancelled'
-                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-                    }`}>
-                      <FaCheck className="w-3 h-3 mr-1" />
-                      {previousSession.status?.charAt(0).toUpperCase() + previousSession.status?.slice(1) || 'Scheduled'}
-                    </span>
-                    {sessionUpdated && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 animate-bounce">
-                        <FaCheck className="w-3 h-3 mr-1" />
-                        Updated
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <FaFileAlt className="text-gray-400 w-4 h-4" />
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Session Title</label>
-                        <p className="text-gray-900 dark:text-gray-100 font-medium">
-                          {previousSession.sessionTitle || previousSession.title || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-3">
-                        <FaUser className="text-gray-400 w-4 h-4" />
-                        <div>
-                          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Student</label>
-                          <p className="text-gray-900 dark:text-gray-100 font-medium">
-                            {Array.isArray(previousSession.students) && previousSession.students.length > 0 
-                            ? previousSession.students[0]?.full_name || 'N/A'
-                              : 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <FaFileAlt className="text-gray-400 w-4 h-4" />
-                        <div>
-                          <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Session</label>
-                          <p className="text-gray-900 dark:text-gray-100 font-medium">
-                            {previousSession.sessionNo || previousSession.session_number || previousSession.sessionId || 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <FaGraduationCap className="text-gray-400 w-4 h-4" />
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Grade & Instructor</label>
-                        <p className="text-gray-900 dark:text-gray-100 font-medium">
-                          {Array.isArray(previousSession.grades) && previousSession.grades.length > 0 
-                            ? previousSession.grades[0]?.name || 'N/A'
-                            : 'N/A'} • {previousSession.instructorId?.full_name || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+      {/* Main Content - Fully Responsive */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        {/* Main Form - Full Width */}
+        <div className="w-full">
+            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
+              <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FaBook className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <FaFileAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 mb-2">No previous sessions found</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500">This will be the first session for this course category</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRefreshingPreviousSession(true);
-                      loadInitialData().finally(() => setRefreshingPreviousSession(false));
-                    }}
-                    className="mt-3 px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium transition-colors duration-200"
-                  >
-                    <FaSync className="w-4 h-4 mr-2 inline" />
-                    Refresh
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Main Form */}
-          <div className="xl:col-span-2">
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <FaBook className="w-5 h-5 text-white" />
-                  </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                       Session Configuration
@@ -1411,173 +1327,9 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                 </div>
               </div>
               
-              <div className="p-6">
-
-              <div className="space-y-6">
-                {/* Session Title */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-indigo-100 via-violet-100 to-purple-100 dark:from-indigo-900/30 dark:via-violet-900/30 dark:to-purple-900/30 rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-700">
-                      <FaBook className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <span>Session Title *</span>
-                  </label>
-                  <div className="relative rounded-xl border border-indigo-200 dark:border-indigo-700 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-900/20 dark:via-violet-900/20 dark:to-purple-900/20 p-1">
-                  <input
-                    type="text"
-                    value={formData.sessionTitle}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, sessionTitle: e.target.value }));
-                      if (errors.sessionTitle) {
-                        setErrors(prev => ({ ...prev, sessionTitle: '' }));
-                      }
-                    }}
-                     className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-indigo-500/40 transition-colors ${
-                      errors.sessionTitle 
-                         ? 'border-red-300 dark:border-red-600' 
-                         : 'border-indigo-300 dark:border-indigo-600'
-                    }`}
-                    placeholder="e.g., Advanced Quadratic Functions"
-                  />
-                  </div>
-                  <p className="mt-1 text-xs text-indigo-600 dark:text-indigo-400">Clear, concise title helps identify the session later.</p>
-                  {errors.sessionTitle && (
-                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                      {errors.sessionTitle}
-                    </p>
-                  )}
-                </div>
-
-                                 {/* Session No */}
-                 <div>
-                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-sky-100 via-cyan-100 to-teal-100 dark:from-sky-900/30 dark:via-cyan-900/30 dark:to-teal-900/30 rounded-lg shadow-sm border border-sky-200 dark:border-sky-700">
-                      <FaClock className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                    </div>
-                    <span>Session No *</span>
-                   </label>
-                  <div className="relative rounded-xl border border-sky-200 dark:border-sky-700 bg-gradient-to-br from-sky-50 via-cyan-50 to-teal-50 dark:from-sky-900/20 dark:via-cyan-900/20 dark:to-teal-900/20 p-1">
-                   <input
-                     type="number"
-                     value={formData.sessionNo}
-                     onChange={(e) => {
-                       const value = e.target.value;
-                       // Only allow positive integers
-                       if (value === '' || /^\d+$/.test(value)) {
-                         setFormData(prev => ({ ...prev, sessionNo: value }));
-                         if (errors.sessionNo) {
-                           setErrors(prev => ({ ...prev, sessionNo: '' }));
-                         }
-                       }
-                     }}
-                     onKeyPress={(e) => {
-                       // Prevent non-numeric characters
-                       if (!/[0-9]/.test(e.key)) {
-                         e.preventDefault();
-                       }
-                     }}
-                     className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-sky-500/40 transition-colors ${
-                       errors.sessionNo 
-                          ? 'border-red-300 dark:border-red-600' 
-                          : 'border-sky-300 dark:border-sky-600'
-                     }`}
-                     placeholder="e.g., 16"
-                     min="1"
-                     step="1"
-                   />
-                  </div>
-                  <p className="mt-1 text-xs text-sky-600 dark:text-sky-400">Use a positive number. This appears in the S3 path as session-N.</p>
-                   {errors.sessionNo && (
-                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                      {errors.sessionNo}
-                    </p>
-                   )}
-                 </div>
-
+              <div className="p-4 sm:p-6">
+                <div className="space-y-4 sm:space-y-6">
                 
-
-                {/* Dashboard Assigned To */}
-                <div>
-                  <div className="relative" ref={dashboardDropdownRef}>
-                    <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-100 via-indigo-100 to-sky-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-sky-900/30 rounded-lg shadow-sm border border-blue-200 dark:border-blue-700">
-                        <FaShieldAlt className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <span className="tracking-wide text-blue-800 dark:text-blue-300">Dashboard Assigned To *</span>
-                      <span className="ml-2 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/70">Required</span>
-                    </label>
-                    <div className="relative rounded-xl border-2 border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-sky-900/20 p-1 ring-4 ring-blue-200 dark:ring-blue-800 shadow-md shadow-blue-100/60 focus-within:ring-blue-300 focus-within:shadow-blue-200/70">
-                       <input
-                         type="text"
-                         value={dashboardSearchQuery}
-                         onChange={(e) => setDashboardSearchQuery(e.target.value)}
-                         onFocus={() => setShowDashboardDropdown(true)}
-                         className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/40 transition-colors ${
-                           errors.dashboard 
-                             ? 'border-red-300 dark:border-red-600' 
-                             : 'border-blue-300 dark:border-blue-600'
-                         }`}
-                         placeholder="Select dashboard access"
-                         readOnly
-                       />
-                       <FaShieldAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 drop-shadow-sm" />
-                     </div>
-                    {errors.dashboard && (
-                      <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.dashboard}</p>
-                    )}
-
-                    {/* Dashboard Dropdown */}
-                    {showDashboardDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
-                        <div className="p-2">
-                          {/* Search Bar */}
-                          <div className="mb-3">
-                    <div className="relative">
-                              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
-                              <input
-                                type="text"
-                                value={dashboardSearchQuery}
-                                onChange={(e) => setDashboardSearchQuery(e.target.value)}
-                                placeholder="Search dashboards..."
-                                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                            </div>
-                          </div>
-                          
-                          {/* Dashboards List */}
-                          <div className="max-h-48 overflow-y-auto">
-                            {filteredDashboards.length > 0 ? (
-                              filteredDashboards.map(dashboard => (
-                                <div
-                                  key={dashboard._id}
-                                  className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer"
-                                  onClick={() => {
-                                    setFormData(prev => ({ ...prev, dashboard: dashboard._id }));
-                                    setDashboardSearchQuery(dashboard.name);
-                                    setShowDashboardDropdown(false);
-                                  }}
-                                >
-                                  <div className="font-medium text-gray-900 dark:text-gray-100">
-                                    {dashboard.name}
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
-                                <FaSearch className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">No dashboards found</p>
-                                <p className="text-xs">Try adjusting your search</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                 
-
                   {/* Student Name */}
                   <div className="grid grid-cols-1 gap-6">
                     {/* Student Name */}
@@ -1621,11 +1373,11 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                             >
                                   <FaTimes className="w-2 h-2" />
                             </button>
-                          </span>
+                    </span>
                         ))}
                       </div>
-                        )}
-                      </div>
+                    )}
+                  </div>
                       {errors.students && (
                         <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.students}</p>
                     )}
@@ -1682,7 +1434,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                      onChange={() => handleStudentSelect(student._id)}
                                      className="rounded"
                                    />
-                                   <div className="flex-1 min-w-0">
+                                   <div 
+                                     className="flex-1 min-w-0"
+                                     onClick={() => handleStudentClick(student._id)}
+                                   >
                                      <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
                                        {student.full_name}
                                      </div>
@@ -1704,6 +1459,269 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                        </div>
                      )}
                   </div>
+
+                  {/* Latest Session Display */}
+                  {(selectedStudentLatestSession || loadingLatestSession) && (
+                    <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                      <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <FaClock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                      <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Latest Session</h3>
+                            {selectedStudentLatestSession && (
+                              <p className="text-sm text-blue-600 dark:text-blue-400">
+                                for {selectedStudentLatestSession.student?.full_name}
+                              </p>
+                            )}
+                      </div>
+                        </div>
+                        {selectedStudentLatestSession && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            ID: {selectedStudentLatestSession.student?._id}
+                          </div>
+                        )}
+                    </div>
+                    
+                      {loadingLatestSession ? (
+                        <div className="flex items-center justify-center py-8">
+                          <FaSpinner className="w-6 h-6 text-blue-600 animate-spin mr-3" />
+                          <span className="text-gray-600 dark:text-gray-400">Loading latest session details...</span>
+                        </div>
+                      ) : selectedStudentLatestSession ? (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Latest session details</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              selectedStudentLatestSession.status === 'completed' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                : selectedStudentLatestSession.status === 'scheduled'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                            }`}>
+                              ✓ {selectedStudentLatestSession.status}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Session Title */}
+                            <div className="flex items-center gap-2">
+                              <FaFileAlt className="w-4 h-4 text-gray-400" />
+                        <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Session Title</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.sessionTitle || 'aaa'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                            {/* Student */}
+                            <div className="flex items-center gap-2">
+                              <FaUser className="w-4 h-4 text-gray-400" />
+                        <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Student</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.student?.full_name || 'Harsh Patel'}
+                          </p>
+                        </div>
+                            </div>
+                            
+                            {/* Session Number */}
+                            <div className="flex items-center gap-2">
+                              <FaHashtag className="w-4 h-4 text-gray-400" />
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Session</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.sessionNo || '1'}
+                                </p>
+                      </div>
+                    </div>
+                    
+                            {/* Grade & Instructor */}
+                            <div className="flex items-center gap-2 md:col-span-2">
+                              <FaGraduationCap className="w-4 h-4 text-gray-400" />
+                      <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Grade & Instructor</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {selectedStudentLatestSession.grade?.name || 'N/A'} • {selectedStudentLatestSession.instructor?.full_name || 'Addya'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                        <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                          <FaClock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No previous sessions found for this student</p>
+                </div>
+              )}
+            </div>
+                  )}
+                
+                {/* Session Title */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-indigo-100 via-violet-100 to-purple-100 dark:from-indigo-900/30 dark:via-violet-900/30 dark:to-purple-900/30 rounded-lg shadow-sm border border-indigo-200 dark:border-indigo-700 flex-shrink-0">
+                      <FaBook className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <span className="text-sm sm:text-base">Session Title *</span>
+                  </label>
+                  <div className="relative rounded-xl border border-indigo-200 dark:border-indigo-700 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50 dark:from-indigo-900/20 dark:via-violet-900/20 dark:to-purple-900/20 p-1">
+                  <input
+                    type="text"
+                    value={formData.sessionTitle}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, sessionTitle: e.target.value }));
+                      if (errors.sessionTitle) {
+                        setErrors(prev => ({ ...prev, sessionTitle: '' }));
+                      }
+                    }}
+                     className={`w-full h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-indigo-500/40 transition-colors ${
+                      errors.sessionTitle 
+                         ? 'border-red-300 dark:border-red-600' 
+                         : 'border-indigo-300 dark:border-indigo-600'
+                    }`}
+                    placeholder="e.g., Advanced Quadratic Functions"
+                  />
+                  </div>
+                  <p className="mt-1 text-xs text-indigo-600 dark:text-indigo-400">Clear, concise title helps identify the session later.</p>
+                  {errors.sessionTitle && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      {errors.sessionTitle}
+                    </p>
+                  )}
+                </div>
+
+                                 {/* Session No */}
+                 <div>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-sky-100 via-cyan-100 to-teal-100 dark:from-sky-900/30 dark:via-cyan-900/30 dark:to-teal-900/30 rounded-lg shadow-sm border border-sky-200 dark:border-sky-700 flex-shrink-0">
+                      <FaClock className="w-3 h-3 sm:w-4 sm:h-4 text-sky-600 dark:text-sky-400" />
+                    </div>
+                    <span className="text-sm sm:text-base">Session No *</span>
+                   </label>
+                  <div className="relative rounded-xl border border-sky-200 dark:border-sky-700 bg-gradient-to-br from-sky-50 via-cyan-50 to-teal-50 dark:from-sky-900/20 dark:via-cyan-900/20 dark:to-teal-900/20 p-1">
+                   <input
+                     type="number"
+                     value={formData.sessionNo}
+                     onChange={(e) => {
+                       const value = e.target.value;
+                       // Only allow positive integers
+                       if (value === '' || /^\d+$/.test(value)) {
+                         setFormData(prev => ({ ...prev, sessionNo: value }));
+                         if (errors.sessionNo) {
+                           setErrors(prev => ({ ...prev, sessionNo: '' }));
+                         }
+                       }
+                     }}
+                     onKeyPress={(e) => {
+                       // Prevent non-numeric characters
+                       if (!/[0-9]/.test(e.key)) {
+                         e.preventDefault();
+                       }
+                     }}
+                     className={`w-full h-11 px-4 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-sky-500/40 transition-colors ${
+                       errors.sessionNo 
+                          ? 'border-red-300 dark:border-red-600' 
+                          : 'border-sky-300 dark:border-sky-600'
+                     }`}
+                     placeholder="e.g., 16"
+                     min="1"
+                     step="1"
+                   />
+                  </div>
+                  <p className="mt-1 text-xs text-sky-600 dark:text-sky-400">Use a positive number. This appears in the S3 path as session-N.</p>
+                   {errors.sessionNo && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      {errors.sessionNo}
+                    </p>
+                   )}
+                 </div>
+
+                
+
+                {/* Dashboard Assigned To */}
+                <div>
+                  <div className="relative" ref={dashboardDropdownRef}>
+                    <label className="block text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
+                      <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-100 via-indigo-100 to-sky-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-sky-900/30 rounded-lg shadow-sm border border-blue-200 dark:border-blue-700 flex-shrink-0">
+                        <FaShieldAlt className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <span className="tracking-wide text-blue-800 dark:text-blue-300 text-sm sm:text-base">Dashboard Assigned To *</span>
+                      <span className="text-[10px] sm:text-xs font-semibold uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/70">Required</span>
+                    </label>
+                    <div className="relative rounded-xl border-2 border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-sky-900/20 p-1 ring-4 ring-blue-200 dark:ring-blue-800 shadow-md shadow-blue-100/60 focus-within:ring-blue-300 focus-within:shadow-blue-200/70">
+                       <input
+                         type="text"
+                         value={dashboardSearchQuery}
+                         onChange={(e) => setDashboardSearchQuery(e.target.value)}
+                         onFocus={() => setShowDashboardDropdown(true)}
+                         className={`w-full h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/40 transition-colors ${
+                           errors.dashboard 
+                             ? 'border-red-300 dark:border-red-600' 
+                             : 'border-blue-300 dark:border-blue-600'
+                         }`}
+                         placeholder="Select dashboard access"
+                         readOnly
+                       />
+                       <FaShieldAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 drop-shadow-sm" />
+                     </div>
+                    {errors.dashboard && (
+                      <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.dashboard}</p>
+                    )}
+
+                    {/* Dashboard Dropdown */}
+                    {showDashboardDropdown && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl shadow-xl z-50 max-h-48 sm:max-h-64 overflow-y-auto">
+                        <div className="p-2 sm:p-3">
+                          {/* Search Bar */}
+                          <div className="mb-3">
+                    <div className="relative">
+                              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4" />
+                              <input
+                                type="text"
+                                value={dashboardSearchQuery}
+                                onChange={(e) => setDashboardSearchQuery(e.target.value)}
+                                placeholder="Search dashboards..."
+                                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Dashboards List */}
+                          <div className="max-h-48 overflow-y-auto">
+                            {filteredDashboards.length > 0 ? (
+                              filteredDashboards.map(dashboard => (
+                                <div
+                                  key={dashboard._id}
+                                  className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg cursor-pointer"
+                                  onClick={() => {
+                                    setFormData(prev => ({ ...prev, dashboard: dashboard._id }));
+                                    setDashboardSearchQuery(dashboard.name);
+                                    setShowDashboardDropdown(false);
+                                  }}
+                                >
+                                  <div className="font-medium text-gray-900 dark:text-gray-100">
+                                    {dashboard.name}
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                                <FaSearch className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                                <p className="text-sm">No dashboards found</p>
+                                <p className="text-xs">Try adjusting your search</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                 
 
                                      {/* Batch and Grade Row */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1766,7 +1784,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                   <FaBook className="text-gray-600 dark:text-gray-400 w-5 h-5" />
                                   <div>
                                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">Batch Selection</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Available batches</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                      {formData.students.length > 0 
+                                        ? `Batches for ${formData.students.length} selected student${formData.students.length > 1 ? 's' : ''} (with fallback)` 
+                                        : "Available batches"
+                                      }
+                                    </p>
                                   </div>
                                 </div>
                                 <button
@@ -1798,13 +1821,10 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                           
                           {/* Batches List */}
                           <div className="max-h-64 overflow-y-auto">
-                            {batches.length > 0 ? (
-                              batches
-                                .filter(batch => 
-                                  (batch.name || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
-                                  (batch.code || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
-                                )
-                                .map(batch => (
+                            {(() => {
+                              const filteredBatches = getFilteredBatches();
+                              return filteredBatches.length > 0 ? (
+                                filteredBatches.map(batch => (
                                   <label
                                     key={batch._id}
                                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
@@ -1816,7 +1836,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                       onChange={() => {
                                         setFormData(prev => ({ ...prev, batchId: batch._id }));
                                         setShowBatchDropdown(false);
-                                        setBatchSearchQuery(batch.name || '');
+                                        setBatchSearchQuery(batch.name || batch.batch_name || '');
                                         if (errors.batchId) {
                                           setErrors(prev => ({ ...prev, batchId: '' }));
                                         }
@@ -1824,11 +1844,23 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                       className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                                     />
                                     <div className="flex-1 min-w-0">
-                                      <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                        {batch.name}
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                          {batch.name || batch.batch_name}
+                                        </span>
+                                        {/* Warning indicator for missing enrolled_student_ids */}
+                                        {(!batch.enrolled_student_ids || batch.enrolled_student_ids.length === 0) && 
+                                         (batch.enrolledStudents || batch.enrolled_students || 0) > 0 && (
+                                          <span 
+                                            className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs rounded-full flex items-center gap-1"
+                                            title="Student enrollment data incomplete - may need database update"
+                                          >
+                                            ⚠️ Data Missing
+                                          </span>
+                                        )}
                                       </div>
                                       <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                        {batch.code} • {new Date(batch.startDate).toLocaleDateString()} - {new Date(batch.endDate).toLocaleDateString()} • {batch.enrolledStudents || 0} students
+                                        {batch.code || batch.batch_code} • {new Date(batch.startDate || batch.start_date).toLocaleDateString()} - {new Date(batch.endDate || batch.end_date).toLocaleDateString()} • {batch.enrolledStudents || batch.enrolled_students || 0} students
                                       </div>
                                     </div>
                                   </label>
@@ -1836,10 +1868,21 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                             ) : (
                               <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                                 <FaBook className="w-8 h-8 mx-auto mb-3 opacity-50" />
-                                <p className="text-sm font-medium">No batches found</p>
-                                <p className="text-xs">Try adjusting your search</p>
+                                  <p className="text-sm font-medium">
+                                    {formData.students.length > 0 
+                                      ? "No batches found for selected students" 
+                                      : "No batches found"
+                                    }
+                                  </p>
+                                  <p className="text-xs">
+                                    {formData.students.length > 0 
+                                      ? "Selected students are not enrolled in any batches" 
+                                      : "Try adjusting your search"
+                                    }
+                                  </p>
                               </div>
-                            )}
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -2006,11 +2049,12 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                            
                 {/* Select Instructors (Multi-select) */}
                 <div className="relative mt-6" ref={instructorDropdownRef}>
-                  <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-red-100 via-pink-100 to-rose-100 dark:from-red-900/30 dark:via-pink-900/30 dark:to-rose-900/30 rounded-lg shadow-sm border border-red-200 dark:border-red-700">
-                      <FaUser className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-gradient-to-br from-red-100 via-pink-100 to-rose-100 dark:from-red-900/30 dark:via-pink-900/30 dark:to-rose-900/30 rounded-lg shadow-sm border border-red-200 dark:border-red-700 flex-shrink-0">
+                      <FaUser className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 dark:text-red-400" />
                     </div>
-                    Select Instructors (Optional)
+                    <span className="text-sm sm:text-base">Select Instructors *</span>
+                    <span className="text-[10px] sm:text-xs font-semibold uppercase px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200/70">Required</span>
                   </label>
                   <div className="relative rounded-xl border border-red-200 dark:border-red-700 bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 dark:from-red-900/20 dark:via-pink-900/20 dark:to-rose-900/20 p-1">
                     <div 
@@ -2086,6 +2130,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                          </div>
                        </div>
                      )}
+                     
+                  {/* Instructor Error Display */}
+                  {errors.instructorId && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                      <span className="text-red-500">⚠️</span>
+                      {errors.instructorId}
+                    </p>
+                  )}
                 </div>
 
                   {/* Video Upload Section */}
@@ -2357,7 +2409,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                             setErrors(prev => ({ ...prev, date: '' }));
                           }
                         }}
-                        min={new Date().toISOString().split('T')[0]}
+
                       className={`w-full px-6 py-3 bg-white dark:bg-gray-700 border-2 rounded-xl focus:ring-4 focus:ring-pink-500/20 transition-all duration-300 shadow-sm group-hover:shadow-md ${
                           errors.date 
                             ? 'border-red-500 focus:border-red-500' 
@@ -2374,13 +2426,14 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                     )}
                 </div>
 
-                {/* Summary Section */}
-                <div className="block w-full border border-gray-200 dark:border-gray-600 rounded-xl p-6 bg-gray-50 dark:bg-gray-700/50">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/30 dark:via-violet-900/30 dark:to-indigo-900/30 rounded-lg shadow-sm border border-purple-200 dark:border-purple-700">
-                      <FaFileAlt className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-bounce" />
+                {/* Summary Section - Full Width Enhanced */}
+                <div className="col-span-full w-full max-w-none border border-gray-200 dark:border-gray-600 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 dark:from-purple-900/20 dark:via-violet-900/20 dark:to-indigo-900/20 shadow-lg">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-3 border-b border-purple-200 dark:border-purple-700 pb-4">
+                    <div className="p-3 bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/30 dark:via-violet-900/30 dark:to-indigo-900/30 rounded-lg shadow-md border border-purple-200 dark:border-purple-700">
+                      <FaFileAlt className="w-5 h-5 text-purple-600 dark:text-purple-400 animate-bounce" />
                     </div>
-                    Summary *
+                    <span className="text-xl">Session Summary *</span>
+                    <div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-transparent dark:from-purple-700"></div>
                   </h3>
 
                   {/* Summary Items */}
@@ -2395,7 +2448,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                     {formData.summary.items.length > 0 ? (
                       <div className="space-y-4">
                         {formData.summary.items.map((item, index) => (
-                          <div key={item.id} className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                          <div key={item.id} className="bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-600 rounded-xl p-4 sm:p-6 w-full max-w-none shadow-md hover:shadow-lg transition-shadow duration-200">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Item {index + 1}
@@ -2435,7 +2488,7 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                        setErrors(prev => ({ ...prev, summaryTitle: '' }));
                                      }
                                    }}
-                                   className={`w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 ${
+                                   className={`w-full min-w-full px-4 py-3 bg-white dark:bg-gray-700 border rounded-lg focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 text-sm sm:text-base ${
                                      errors.summaryTitle 
                                        ? 'border-red-500 focus:border-red-500' 
                                        : 'border-gray-300 dark:border-gray-600 focus:border-blue-500'
@@ -2462,9 +2515,9 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                                      ...prev, 
                                      summary: { ...prev.summary, description: e.target.value }
                                    }))}
-                                   rows={4}
-                                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
-                                   placeholder="Enter summary description..."
+                                   rows={6}
+                                   className="w-full min-w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 resize-y"
+                                   placeholder="Enter detailed summary description..."
                                  />
                                </div>
                              </div>
@@ -2500,21 +2553,23 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                   </div>
                 </div>
 
-                {/* Submit Button */}
-                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                {/* Submit Button - Responsive */}
+                <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     {loading ? (
                       <>
-                        <FaSpinner className="w-5 h-5 animate-spin" />
-                        Uploading Live Session Recording...
+                        <FaSpinner className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                        <span className="hidden sm:inline">Uploading Live Session Recording...</span>
+                        <span className="sm:hidden">Uploading...</span>
                       </>
                     ) : (
                       <>
-                        {isEditMode ? 'Update Live Session Recording' : 'Upload Live Session Recording'}
+                        <span className="hidden sm:inline">{isEditMode ? 'Update Live Session Recording' : 'Upload Live Session Recording'}</span>
+                        <span className="sm:hidden">{isEditMode ? 'Update Session' : 'Upload Session'}</span>
                       </>
                     )}
                   </button>
@@ -2522,7 +2577,6 @@ export default function CreateLiveSessionForm({ courseCategory, backUrl, editSes
                 </div>
               </div>
             </form>
-          </div>
         </div>
       </div>
     </div>

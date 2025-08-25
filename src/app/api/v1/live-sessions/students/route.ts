@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiBaseUrl } from '@/apis/config';
 
 /**
  * GET handler to fetch students with search and pagination
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const page = searchParams.get('page') || '1';
     const limit = searchParams.get('limit') || '20';
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Build query parameters
     const params = new URLSearchParams();

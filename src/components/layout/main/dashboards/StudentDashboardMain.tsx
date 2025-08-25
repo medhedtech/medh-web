@@ -27,7 +27,11 @@ import {
   CheckSquare,
   Clock,
   Trophy,
-  Video
+  Video,
+  Briefcase,
+  Link2 as LinkIcon,
+  BarChart3,
+  Gift
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -779,11 +783,11 @@ const StudentDashboardMain: React.FC = () => {
     }
   }, [isClient, searchParams]);
 
-  // Set up the 3 welcome carousel slides
+  // Set up the 2 welcome carousel slides
   useEffect(() => {
     if (!userName) return;
 
-    // Create the 3 welcome slides with welcome messages
+    // Create the 2 welcome slides with welcome messages (removed My Course slide)
     const welcomeSlides = [
       {
         id: 'welcome-slide-1',
@@ -806,17 +810,6 @@ const StudentDashboardMain: React.FC = () => {
         isWelcome: true,
         actionText: 'Browse Categories',
         secondaryText: 'View Progress'
-      },
-      {
-        id: 'welcome-slide-3',
-        title: 'Ready to Excel?',
-        subtitle: 'Build Skills That Matter',
-        message: 'Access premium content, live sessions, and industry-recognized certifications to advance your professional journey.',
-        color: 'bg-gradient-to-br from-emerald-500 via-green-500 to-lime-500',
-        image: '/backgrounds/welcome-bg-3.jpg',
-        isWelcome: true,
-        actionText: 'Start Learning',
-        secondaryText: 'View Resources'
       }
     ];
 
@@ -831,7 +824,7 @@ const StudentDashboardMain: React.FC = () => {
       if (!studentId) return;
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/enrollments/student/${studentId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8080/api/v1' : 'https://api.medh.co')}/enrollments/student/${studentId}`);
         
         if (response.ok) {
           const data = await response.json();
@@ -939,7 +932,7 @@ const StudentDashboardMain: React.FC = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="min-h-screen bg-gray-50 dark:bg-gray-900"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900"
     >
       {/* Dynamic Course Banner */}
       <motion.div 
@@ -1067,9 +1060,7 @@ const StudentDashboardMain: React.FC = () => {
                           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-3 mt-4">
                             {/* Welcome slide buttons - customized for each slide */}
                             <Link 
-                              href={course.id === 'welcome-slide-1' ? "/courses" : 
-                                    course.id === 'welcome-slide-2' ? "/courses" : 
-                                    "/courses"}
+                              href={course.id === 'welcome-slide-1' ? "/courses" : "/courses"}
                               className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors font-medium text-xs sm:text-sm backdrop-blur-sm shadow-sm w-full sm:w-auto min-h-[44px]"
                             >
                               <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -1077,14 +1068,10 @@ const StudentDashboardMain: React.FC = () => {
                             </Link>
                             
                             <Link 
-                              href={course.id === 'welcome-slide-1' ? "/dashboards/student/goals" : 
-                                    course.id === 'welcome-slide-2' ? "/dashboards/student" : 
-                                    "/dashboards/student/resources"}
+                              href={course.id === 'welcome-slide-1' ? "/dashboards/student/goals" : "/dashboards/student"}
                               className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors text-xs sm:text-sm backdrop-blur-sm w-full sm:w-auto min-h-[44px]"
                             >
-                              {course.id === 'welcome-slide-1' ? <Target className="mr-2 h-4 w-4 flex-shrink-0" /> : 
-                               course.id === 'welcome-slide-2' ? <BarChart2 className="mr-2 h-4 w-4 flex-shrink-0" /> : 
-                               <FileText className="mr-2 h-4 w-4 flex-shrink-0" />}
+                              {course.id === 'welcome-slide-1' ? <Target className="mr-2 h-4 w-4 flex-shrink-0" /> : <BarChart2 className="mr-2 h-4 w-4 flex-shrink-0" />}
                               <span className="truncate">{course.secondaryText || 'Get Started'}</span>
                             </Link>
                           </div>
@@ -1134,25 +1121,8 @@ const StudentDashboardMain: React.FC = () => {
                                     </div>
                                   </>
                                 )}
-                                
-                                {course.id === 'welcome-slide-3' && (
-                                  <>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
-                                      <span className="truncate">Live sessions available</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
-                                      <span className="truncate">Premium content</span>
                                     </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-emerald-400" /> 
-                                      <span className="truncate">Job assistance</span>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -1211,100 +1181,266 @@ const StudentDashboardMain: React.FC = () => {
       </motion.div>
 
       {/* Dashboard content */}
-      <div className="w-full py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+      <div className="w-full py-2 xs:py-3 sm:py-4 md:py-6 lg:py-8 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10">
+        <div className="max-w-8xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6 xl:gap-8">
           {/* Left column - 8/12 width on desktop */}
-          <div className="lg:col-span-8 grid grid-cols-1 gap-6 sm:gap-8">
-            {/* Demo Booking Section - High Priority */}
-            {showDemoBooking && (
+          <div className="lg:col-span-8 grid grid-cols-1 gap-2 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6">
+            {/* Enrolled Courses Section */}
               <motion.section 
                 variants={itemVariants}
-                className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden border-2 border-green-200 dark:border-green-800"
-              >
-                <MemoizedDemoBookingCard 
-                  userName={userName} 
-                  isHighPriority={!hasEnrolledCourses} 
-                />
-              </motion.section>
-            )}
-
-            {/* Progress Overview */}
-            <motion.section 
-              variants={itemVariants}
-              className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+              className="col-span-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden hover:shadow-xl transition-all duration-300 h-fit"
             >
-              <MemoizedProgressOverview />
+              <div className="p-3 xs:p-4 sm:p-5 md:p-6">
+                <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mb-3 xs:mb-4 sm:mb-5 gap-2 xs:gap-3 sm:gap-0">
+                  <div className="flex items-center gap-2 xs:gap-3">
+                    <div className="p-2 xs:p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 shadow-sm">
+                      <BookOpen className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Enrolled Courses</h2>
+                      <p className="text-xs xs:text-sm sm:text-base text-gray-500 dark:text-gray-400 hidden xs:block">Manage your learning journey</p>
+                    </div>
+                  </div>
+                  <Link href="/dashboards/student/enrolled-courses" className="group text-xs xs:text-sm sm:text-base text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1.5 xs:gap-2 bg-primary-50 dark:bg-primary-900/20 px-2.5 xs:px-3 sm:px-4 py-1.5 xs:py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all duration-200 self-start xs:self-auto min-h-[44px] xs:min-h-[40px] sm:min-h-auto">
+                    <span className="whitespace-nowrap font-medium">View All</span> <ArrowRight className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  </Link>
+                </div>
+                
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-2 xs:gap-3 sm:gap-4">
+                  <Link href="/dashboards/student/enrolled-courses" className="group bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg sm:rounded-xl p-3 xs:p-4 sm:p-5 border border-blue-200 dark:border-blue-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[100px] xs:min-h-[110px] sm:min-h-[120px] flex flex-col">
+                    <div className="flex items-center justify-between mb-2 xs:mb-2.5 sm:mb-3">
+                      <span className="text-xs xs:text-sm sm:text-base font-semibold text-blue-700 dark:text-blue-300">All Courses</span>
+                      <div className="p-1 xs:p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-800/50 rounded-md sm:rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-700/50 transition-colors">
+                        <BookOpen className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs xs:text-sm text-blue-600 dark:text-blue-400 leading-relaxed mt-auto">View all enrolled courses and track your progress</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/enrolled-courses?type=live" className="group bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg sm:rounded-xl p-3 xs:p-4 sm:p-5 border border-green-200 dark:border-green-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[100px] xs:min-h-[110px] sm:min-h-[120px] flex flex-col">
+                    <div className="flex items-center justify-between mb-2 xs:mb-2.5 sm:mb-3">
+                      <span className="text-xs xs:text-sm sm:text-base font-semibold text-green-700 dark:text-green-300">Live Classes</span>
+                      <div className="p-1 xs:p-1.5 sm:p-2 bg-green-100 dark:bg-green-800/50 rounded-md sm:rounded-lg group-hover:bg-green-200 dark:group-hover:bg-green-700/50 transition-colors">
+                        <Video className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs xs:text-sm text-green-600 dark:text-green-400 leading-relaxed mt-auto">Live interactive courses with real-time learning</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/enrolled-courses?type=blended" className="group bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg sm:rounded-xl p-3 xs:p-4 sm:p-5 border border-purple-200 dark:border-purple-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[100px] xs:min-h-[110px] sm:min-h-[120px] flex flex-col">
+                    <div className="flex items-center justify-between mb-2 xs:mb-2.5 sm:mb-3">
+                      <span className="text-xs xs:text-sm sm:text-base font-semibold text-purple-700 dark:text-purple-300">Blended Learning</span>
+                      <div className="p-1 xs:p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-800/50 rounded-md sm:rounded-lg group-hover:bg-purple-200 dark:group-hover:bg-purple-700/50 transition-colors">
+                        <BookOpen className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs xs:text-sm text-purple-600 dark:text-purple-400 leading-relaxed mt-auto">Mixed learning approach combining online and offline</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/enrolled-courses?type=corporate" className="group bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg sm:rounded-xl p-3 xs:p-4 sm:p-5 border border-orange-200 dark:border-orange-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[100px] xs:min-h-[110px] sm:min-h-[120px] flex flex-col">
+                    <div className="flex items-center justify-between mb-2 xs:mb-2.5 sm:mb-3">
+                      <span className="text-xs xs:text-sm sm:text-base font-semibold text-orange-700 dark:text-orange-300">Corporate Training</span>
+                      <div className="p-1 xs:p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-800/50 rounded-md sm:rounded-lg group-hover:bg-orange-200 dark:group-hover:bg-orange-700/50 transition-colors">
+                        <Briefcase className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs xs:text-sm text-orange-600 dark:text-orange-400 leading-relaxed mt-auto">Professional development and corporate programs</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/enrolled-courses?type=school" className="group bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 rounded-lg sm:rounded-xl p-3 xs:p-4 sm:p-5 border border-teal-200 dark:border-teal-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[100px] xs:min-h-[110px] sm:min-h-[120px] flex flex-col">
+                    <div className="flex items-center justify-between mb-2 xs:mb-2.5 sm:mb-3">
+                      <span className="text-xs xs:text-sm sm:text-base font-semibold text-teal-700 dark:text-teal-300">School Institute Programs</span>
+                      <div className="p-1 xs:p-1.5 sm:p-2 bg-teal-100 dark:bg-teal-800/50 rounded-md sm:rounded-lg group-hover:bg-teal-200 dark:group-hover:bg-teal-700/50 transition-colors">
+                        <GraduationCap className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-teal-600 dark:text-teal-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs xs:text-sm text-teal-600 dark:text-teal-400 leading-relaxed mt-auto">Academic institution courses and certification programs</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/enrolled-courses?type=free" className="group bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-lg sm:rounded-xl p-3 xs:p-4 sm:p-5 border border-emerald-200 dark:border-emerald-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[100px] xs:min-h-[110px] sm:min-h-[120px] flex flex-col">
+                    <div className="flex items-center justify-between mb-2 xs:mb-2.5 sm:mb-3">
+                      <span className="text-xs xs:text-sm sm:text-base font-semibold text-emerald-700 dark:text-emerald-300">Free Courses</span>
+                      <div className="p-1 xs:p-1.5 sm:p-2 bg-emerald-100 dark:bg-emerald-800/50 rounded-md sm:rounded-lg group-hover:bg-emerald-200 dark:group-hover:bg-emerald-700/50 transition-colors">
+                        <Gift className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs xs:text-sm text-emerald-600 dark:text-emerald-400 leading-relaxed mt-auto">Access free courses and learning materials</p>
+                  </Link>
+                </div>
+              </div>
             </motion.section>
-          
-            {/* Live Sessions Section */}
-            <motion.section 
-              variants={itemVariants}
-              className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
-            >
-              <MemoizedStudentUpcomingClasses />
-            </motion.section>
 
-            {/* Study Goals Section */}
+            {/* Upcoming Classes Section */}
             <motion.section 
               variants={itemVariants}
-              className="col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+              className="col-span-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden hover:shadow-xl transition-all duration-300 h-fit"
             >
-              <MemoizedStudyGoals />
+              <div className="p-3 xs:p-4 sm:p-5 md:p-6">
+                <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mb-3 xs:mb-4 sm:mb-5 gap-2 xs:gap-3 sm:gap-0">
+                  <div className="flex items-center gap-2 xs:gap-3">
+                    <div className="p-2 xs:p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 shadow-sm">
+                      <Calendar className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Upcoming Classes</h2>
+                      <p className="text-xs xs:text-sm sm:text-base text-gray-500 dark:text-gray-400 hidden xs:block">Stay on track with your schedule</p>
+                    </div>
+                  </div>
+                  <Link href="/dashboards/student/upcoming-classes" className="group text-xs xs:text-sm sm:text-base text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1.5 xs:gap-2 bg-primary-50 dark:bg-primary-900/20 px-2.5 xs:px-3 sm:px-4 py-1.5 xs:py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all duration-200 self-start xs:self-auto min-h-[44px] xs:min-h-[40px] sm:min-h-auto">
+                    <span className="whitespace-nowrap font-medium">View All</span> <ArrowRight className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  </Link>
+                </div>
+                
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4">
+                  <Link href="/dashboards/student/upcoming-classes" className="group bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <span className="text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300">Course Schedule</span>
+                      <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-800/50 rounded-md sm:rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-700/50 transition-colors">
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">View your course schedules and upcoming sessions</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/upcoming-classes?view=timings" className="group bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200 dark:border-green-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <span className="text-xs sm:text-sm font-semibold text-green-700 dark:text-green-300">Class Timings</span>
+                      <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-800/50 rounded-md sm:rounded-lg group-hover:bg-green-200 dark:group-hover:bg-green-700/50 transition-colors">
+                        <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-green-600 dark:text-green-400 leading-relaxed">Check class timings and duration details</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/upcoming-classes?view=sessions" className="group bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-purple-200 dark:border-purple-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <span className="text-xs sm:text-sm font-semibold text-purple-700 dark:text-purple-300">Session Count</span>
+                      <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-800/50 rounded-md sm:rounded-lg group-hover:bg-purple-200 dark:group-hover:bg-purple-700/50 transition-colors">
+                        <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 leading-relaxed">Track total sessions and progress</p>
+                  </Link>
+                  
+                  <Link href="/dashboards/student/upcoming-classes?view=links" className="group bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-orange-200 dark:border-orange-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <span className="text-xs sm:text-sm font-semibold text-orange-700 dark:text-orange-300">Join Links</span>
+                      <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-800/50 rounded-md sm:rounded-lg group-hover:bg-orange-200 dark:group-hover:bg-orange-700/50 transition-colors">
+                        <LinkIcon className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 leading-relaxed">Quick access to online class links</p>
+                  </Link>
+                </div>
+              </div>
             </motion.section>
           </div>
           
           {/* Right column - 4/12 width on desktop */}
-          <div className="lg:col-span-4 flex flex-col gap-4">
+          <div className="lg:col-span-4 flex flex-col gap-2 xs:gap-3 sm:gap-4 md:gap-5">
             {/* Recent Announcements Section */}
             <motion.div 
               variants={itemVariants}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              <div className="p-5">
+              <div className="p-3 xs:p-4 sm:p-5 md:p-6">
+                <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mb-3 xs:mb-4 sm:mb-5 gap-2 xs:gap-3 sm:gap-0">
+                  <div className="flex items-center gap-2 xs:gap-3">
+                    <div className="p-2 xs:p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 shadow-sm">
+                      <BellRing className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Announcements</h2>
+                      <p className="text-xs xs:text-sm sm:text-base text-gray-500 dark:text-gray-400 hidden xs:block">Stay updated with latest news</p>
+                    </div>
+                  </div>
+                  <Link href="/dashboards/student/announcements" className="group text-xs xs:text-sm sm:text-base text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1.5 xs:gap-2 bg-primary-50 dark:bg-primary-900/20 px-2.5 xs:px-3 sm:px-4 py-1.5 xs:py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all duration-200 self-start xs:self-auto min-h-[44px] xs:min-h-[40px] sm:min-h-auto">
+                    <span className="whitespace-nowrap font-medium">View All</span> <ArrowRight className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  </Link>
+                </div>
                 <MemoizedRecentAnnouncements 
                 limit={5} 
-                showViewAll={true}
+                  showViewAll={false}
                 onViewAllClick={() => console.log("Navigate to all announcements page")}
               />
               </div>
             </motion.div>
             
-            {/* Weekly Activity Chart */}
+            {/* Progress Overview - Coming Soon */}
             <motion.div
               variants={itemVariants}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              <WeeklyActivityChart />
-            </motion.div>
-            
-            {/* Free Courses Section */}
-            <motion.div 
-              variants={itemVariants}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
-            >
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-                      <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <div className="p-3 xs:p-4 sm:p-5 md:p-6">
+                <div className="flex items-center justify-between mb-3 xs:mb-4 sm:mb-5">
+                  <div className="flex items-center gap-2 xs:gap-3">
+                    <div className="p-2 xs:p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 shadow-sm">
+                      <BarChart3 className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400" />
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Free Courses</h2>
+                    <div>
+                      <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Progress Overview</h2>
+                      <p className="text-xs xs:text-sm sm:text-base text-gray-500 dark:text-gray-400 hidden xs:block">Track your learning journey</p>
+                    </div>
                   </div>
-                  <Link href="/courses?category=free" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
-                    View All <ArrowRight className="w-4 h-4 ml-1" />
-                  </Link>
+                  <span className="px-2 xs:px-3 py-1 xs:py-1.5 bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20 text-yellow-800 dark:text-yellow-200 text-xs xs:text-sm font-semibold rounded-full border border-yellow-200 dark:border-yellow-700">
+                    Coming Soon
+                  </span>
                 </div>
-                <MemoizedFreeClasses />
+                
+                <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/10 dark:to-amber-900/10 rounded-xl p-6 text-center border border-yellow-200 dark:border-yellow-700 hover:shadow-md transition-all duration-300">
+                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <TrendingUp className="w-10 h-10 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-3">Progress Analytics</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Comprehensive progress tracking, performance insights, and learning analytics are being developed to enhance your educational experience.
+                  </p>
+                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-yellow-600 dark:text-yellow-400">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                    <span>Feature in development</span>
+                  </div>
+                </div>
               </div>
             </motion.div>
             
-            {/* Learning Resources Section */}
+            {/* Free Courses - Coming Soon */}
             <motion.div 
               variants={itemVariants}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden"
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              <MemoizedLearningResources />
+              <div className="p-3 xs:p-4 sm:p-5 md:p-6">
+                <div className="flex items-center justify-between mb-3 xs:mb-4 sm:mb-5">
+                  <div className="flex items-center gap-2 xs:gap-3">
+                    <div className="p-2 xs:p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 shadow-sm">
+                      <GraduationCap className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Free Courses</h2>
+                      <p className="text-xs xs:text-sm sm:text-base text-gray-500 dark:text-gray-400 hidden xs:block">Explore free learning opportunities</p>
+                    </div>
+                  </div>
+                  <span className="px-2 xs:px-3 py-1 xs:py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 text-green-800 dark:text-green-200 text-xs xs:text-sm font-semibold rounded-full border border-green-200 dark:border-green-700">
+                    Coming Soon
+                  </span>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-xl p-6 text-center border border-green-200 dark:border-green-700 hover:shadow-md transition-all duration-300">
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <Gift className="w-10 h-10 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-3">Free Learning Hub</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Discover a comprehensive collection of free courses, tutorials, and learning resources designed to accelerate your growth.
+                  </p>
+                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-green-600 dark:text-green-400">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span>Launching soon</span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
+          </div>
           </div>
         </div>
       </div>

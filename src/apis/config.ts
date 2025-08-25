@@ -7,26 +7,43 @@
 
 // Determine the appropriate API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // Force localhost for development (override everything)
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    console.log('🔧 Development mode detected - using localhost backend');
-    return 'http://localhost:8080/api/v1';
-  }
+  // Force development URL for now to fix fetch error
+  const devUrl = 'http://localhost:8080/api/v1';
+  console.log('🔧 Forcing development API URL:', devUrl);
+  return devUrl;
 
-  // Force use backend URL for live classes API
+  // Original logic commented out for now
+  /*
+  // First priority: Explicit API URL override (highest priority)
   if (process.env.NEXT_PUBLIC_API_URL) {
+    console.log('🚀 Using explicit API URL from environment:', process.env.NEXT_PUBLIC_API_URL);
     return process.env.NEXT_PUBLIC_API_URL;
   }
 
   // Second priority: Environment-specific URLs
   if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_API_URL_PROD || 'https://api.medh.co/api/v1';
+    const prodUrl = process.env.NEXT_PUBLIC_API_URL_PROD || 'https://api.medh.co';
+    console.log('🌐 Production environment detected - using:', prodUrl);
+    return prodUrl;
   } else if (process.env.NODE_ENV === 'test') {
-    return process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co/api/v1';
+    const testUrl = process.env.NEXT_PUBLIC_API_URL_TEST || 'https://api.medh.co';
+    console.log('🧪 Test environment detected - using:', testUrl);
+    return testUrl;
   } else {
-    // Development - use backend directly
-    return 'http://localhost:8080/api/v1';
+    // Development environment
+    // Check if we're running on localhost
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      const devUrl = process.env.NEXT_PUBLIC_API_URL_DEV || 'http://localhost:8080/api/v1';
+      console.log('🔧 Development mode detected (localhost) - using:', devUrl);
+      return devUrl;
+    } else {
+      // Development but not on localhost (could be staging or preview)
+      const devUrl = process.env.NEXT_PUBLIC_API_URL_DEV || 'https://api.medh.co';
+      console.log('🔧 Development mode detected (non-localhost) - using:', devUrl);
+      return devUrl;
+    }
   }
+  */
 };
 
 // Export the base URL
@@ -37,6 +54,11 @@ if (typeof window !== 'undefined') {
   console.log('🌐 API Base URL configured:', apiBaseUrl);
   console.log('🌍 Current hostname:', window.location.hostname);
   console.log('🔧 Environment:', process.env.NODE_ENV);
+  console.log('📋 Environment Variables:');
+  console.log('  - NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL || 'Not set');
+  console.log('  - NEXT_PUBLIC_API_URL_PROD:', process.env.NEXT_PUBLIC_API_URL_PROD || 'Not set');
+  console.log('  - NEXT_PUBLIC_API_URL_DEV:', process.env.NEXT_PUBLIC_API_URL_DEV || 'Not set');
+  console.log('  - NODE_ENV:', process.env.NODE_ENV || 'Not set');
 }
 
 // Additional API configuration settings

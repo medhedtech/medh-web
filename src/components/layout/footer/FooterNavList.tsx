@@ -22,7 +22,7 @@ import { courseTypesAPI } from "@/apis/courses";
 import LogoDark from "@/assets/images/logo/medh_logo-1.png";
 import LogoLight from "@/assets/images/logo/medh_logo-2.png";
 import QRCode from "@/assets/images/footer/qr.png";
-import ISO9001 from "@/assets/images/iso/iso9001.png";
+import ISO9001 from "@/assets/images/certifications/ISOlogo.png";
 import STEMCert from "/public/images/certifications/stem-accredited.png";
 
 // Allowed categories for blended courses
@@ -270,6 +270,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
     { name: "Privacy Policy", path: "/privacy-policy" },
     { name: "Cookie Policy", path: "/cookie-policy" },
     { name: "Cancellation & Refund Policy", path: "/cancellation-and-refund-policy" },
+    { name: "Money Guarantee Policy", path: "/money-guarantee-policy" },
     { name: "Data Subject Rights Information Policy", path: "/data-subject-rights-information-policy" }
   ];
 
@@ -361,7 +362,7 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                           <div>9001</div>
                         </div>
                       </div>
-                      <span className={`text-sm ${currentTheme.bodyText} font-medium`}>ISO 9001 Certified</span>
+                                             <span className={`text-sm ${currentTheme.bodyText} font-medium`}>ISO Certified</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="relative bg-white rounded-lg p-2 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex-shrink-0">
@@ -568,40 +569,60 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
                 </div>
               </div>
 
-              {/* QR Code Section - Enhanced */}
-              <div className="relative bg-white/20 dark:bg-slate-800/20 backdrop-blur-lg rounded-2xl border border-white/25 dark:border-slate-600/25 p-6 lg:p-8 shadow-lg h-full flex flex-col">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10 rounded-2xl"></div>
-                
-                <div className="relative z-10 flex flex-col items-center justify-center space-y-6 flex-1">
-                  <div className="relative bg-white rounded-2xl p-4 shadow-xl shadow-slate-900/20 dark:shadow-black/30 hover:shadow-2xl hover:shadow-slate-900/30 dark:hover:shadow-black/40 transition-all duration-300 hover:scale-105">
-                    <Image 
-                      src={QRCode} 
-                      alt="Medh QR Code" 
-                      width={128}
-                      height={128}
-                      className="object-contain w-32 h-32"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const fallback = target.parentElement?.querySelector('.qr-fallback') as HTMLElement;
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                    />
-                    {/* QR Code Fallback */}
-                    <div className="qr-fallback hidden flex-col items-center justify-center w-32 h-32 bg-gray-100 rounded-lg">
-                      <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mb-2">
-                        <div className="text-gray-500 text-2xl">📱</div>
-                      </div>
-                      <div className="text-xs text-gray-500 text-center">QR Code</div>
-                    </div>
-                  </div>
-                  <div className="text-center space-y-4">
-                    <p className="text-lg font-semibold text-slate-900 dark:text-white">Medh QR Code</p>
-                    
-
-                  </div>
-                </div>
-              </div>
+                             {/* QR Code Section - Enhanced */}
+               <div className="relative bg-white/20 dark:bg-slate-800/20 backdrop-blur-lg rounded-2xl border border-white/25 dark:border-slate-600/25 p-6 lg:p-8 shadow-lg h-full flex flex-col">
+                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10 rounded-2xl"></div>
+                 
+                 <div className="relative z-10 flex flex-col items-center justify-center space-y-6 flex-1">
+                   <div className="relative bg-white rounded-2xl p-4 shadow-xl shadow-slate-900/20 dark:shadow-black/30 hover:shadow-2xl hover:shadow-slate-900/30 dark:hover:shadow-black/40 transition-all duration-300 hover:scale-105">
+                     <Image 
+                       src={QRCode} 
+                       alt="Medh QR Code" 
+                       width={128}
+                       height={128}
+                       className="object-contain w-32 h-32"
+                       onError={(e) => {
+                         const target = e.target as HTMLImageElement;
+                         target.style.display = 'none';
+                         const fallback = target.parentElement?.querySelector('.qr-fallback') as HTMLElement;
+                         if (fallback) fallback.style.display = 'flex';
+                       }}
+                     />
+                     {/* QR Code Fallback */}
+                     <div className="qr-fallback hidden flex-col items-center justify-center w-32 h-32 bg-gray-100 rounded-lg">
+                       <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center mb-2">
+                         <div className="text-gray-500 text-2xl">📱</div>
+                       </div>
+                       <div className="text-xs text-gray-500 text-center">QR Code</div>
+                     </div>
+                   </div>
+                   <div className="text-center space-y-4">
+                     <p className="text-lg font-semibold text-slate-900 dark:text-white">Medh QR Code</p>
+                     
+                     {/* Follow us section moved below QR Code */}
+                     <div className="space-y-3">
+                       <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">Follow us:</p>
+                       <div className="flex justify-center gap-3">
+                         {socialLinks.map((link, index) => {
+                           const IconComponent = link.icon;
+                           return (
+                             <a
+                               key={index}
+                               href={link.url}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               aria-label={`Visit our ${link.name} page`}
+                               className="group w-8 h-8 flex items-center justify-center rounded-xl bg-white/20 dark:bg-slate-700/20 hover:bg-blue-500/80 dark:hover:bg-blue-500/80 text-slate-600 dark:text-slate-400 hover:text-white transition-all duration-200 hover:scale-110 hover:-translate-y-1 backdrop-blur-sm border border-white/20 dark:border-slate-600/20"
+                             >
+                               <IconComponent className="w-4 h-4" />
+                             </a>
+                           );
+                         })}
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
             </div>
           </div>
         </div>
@@ -611,43 +632,21 @@ const FooterNavList: React.FC<FooterNavListProps> = ({ theme = 'dark' }) => {
       <div className="relative z-10 mt-12">
         <div className={`border-t ${currentTheme.navBorder}`}></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:justify-between lg:items-center w-full">
-            
-            {/* Policy Links - Enhanced with better mobile responsiveness */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-1 md:gap-2 lg:gap-3 w-full lg:w-auto">
-              {policyLinks.map((link, index) => (
-                <Link
-                  key={index}
-                  href={link.path}
-                  className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-xs md:text-sm font-medium px-1 md:px-2 lg:px-3 py-1 rounded-lg hover:bg-white/20 dark:hover:bg-slate-700/20 whitespace-nowrap flex-shrink-0"
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-
-            {/* Social Media - Enhanced with better mobile responsiveness */}
-            <div className="flex items-center justify-center lg:justify-end gap-2 md:gap-3 lg:gap-4 w-full lg:w-auto">
-              <span className="text-xs md:text-sm text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap flex-shrink-0">Follow us:</span>
-              <div className="flex gap-1 md:gap-2 lg:gap-3">
-                {socialLinks.map((link, index) => {
-                  const IconComponent = link.icon;
-                  return (
-                    <a
-                      key={index}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Visit our ${link.name} page`}
-                      className="group w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-xl bg-white/20 dark:bg-slate-700/20 hover:bg-blue-500/80 dark:hover:bg-blue-500/80 text-slate-600 dark:text-slate-400 hover:text-white transition-all duration-200 hover:scale-110 hover:-translate-y-1 backdrop-blur-sm border border-white/20 dark:border-slate-600/20 flex-shrink-0"
-                    >
-                      <IconComponent className="w-3 h-3 md:w-4 md:h-4 lg:w-5 lg:h-5" />
-                    </a>
-                  );
-                })}
+                                <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:justify-center lg:items-center w-full">
+             
+                           {/* Policy Links - Responsive Layout */}
+              <div className="flex flex-wrap justify-center gap-1 md:gap-2 lg:gap-3 w-full">
+                {policyLinks.map((link, index) => (
+                  <Link
+                    key={index}
+                    href={link.path}
+                    className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-xs md:text-sm font-medium px-1 md:px-2 py-1 rounded-lg hover:bg-white/20 dark:hover:bg-slate-700/20 whitespace-nowrap flex-shrink-0"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
               </div>
-            </div>
-          </div>
+           </div>
 
           {/* Copyright - Enhanced */}
           <div className="mt-8">

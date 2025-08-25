@@ -14,6 +14,7 @@ import { apiClient } from '@/apis/apiClient';
 import { showToast } from '@/utils/toastManager';
 
 
+
 // Interfaces
 interface ComprehensiveProfile {
   basic_info: {
@@ -28,10 +29,8 @@ interface ComprehensiveProfile {
       is_primary: boolean;
       is_verified: boolean;
     }>;
-    age: number;
-    age_group: string;
-    address: string;
-    organization: string;
+      age: number;
+  address: string;
     bio: string;
     country: string;
     timezone: string;
@@ -69,11 +68,7 @@ interface ComprehensiveProfile {
       language: string;
       proficiency: string;
     }>;
-    occupation: string;
-    industry: string;
-    company: string;
-    experience_level: string;
-    annual_income_range: string;
+    
     education_level: string;
     institution_name: string;
     field_of_study: string;
@@ -281,6 +276,26 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     });
   };
 
+  // Helper function to format date for HTML date input (YYYY-MM-DD)
+  const formatDateForInput = (dateString: string | Date | null | undefined): string => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      
+      // Format as YYYY-MM-DD for HTML date input
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error('Error formatting date for input:', error);
+      return '';
+    }
+  };
+
   // Edit functions
   const handleEditProfile = () => {
     setEditData({
@@ -290,27 +305,19 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       bio: profile?.basic_info.bio || '',
       age: profile?.basic_info.age || '',
       address: profile?.basic_info.address || '',
-      organization: profile?.basic_info.organization || '',
       country: profile?.basic_info.country || '',
       timezone: profile?.basic_info.timezone || '',
       
       // Personal Details
-      date_of_birth: profile?.personal_details.date_of_birth || '',
+      date_of_birth: formatDateForInput(profile?.personal_details.date_of_birth),
       gender: profile?.personal_details.gender || '',
       nationality: profile?.personal_details.nationality || '',
-      occupation: profile?.personal_details.occupation || '',
-      industry: profile?.personal_details.industry || '',
-      company: profile?.personal_details.company || '',
-      experience_level: profile?.personal_details.experience_level || '',
-      annual_income_range: profile?.personal_details.annual_income_range || '',
-      languages_spoken: profile?.personal_details.languages_spoken?.map(l => l.language) || [],
-      interests: profile?.personal_details.interests || [],
       
-      // Skills & Education
-      skills: profile?.personal_details.skills || [],
-      certifications: profile?.personal_details.certifications || [],
-      learning_goals: profile?.personal_details.learning_goals || [],
-      preferred_study_times: profile?.personal_details.preferred_study_times || [],
+      // Education Information
+      education_level: profile?.personal_details.education_level || '',
+      institution_name: profile?.personal_details.institution_name || '',
+      field_of_study: profile?.personal_details.field_of_study || '',
+      graduation_year: profile?.personal_details.graduation_year || '',
       
       // Social Media Links
       facebook_link: profile?.basic_info.facebook_link || '',
@@ -319,110 +326,236 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       twitter_link: profile?.basic_info.twitter_link || '',
       youtube_link: profile?.basic_info.youtube_link || '',
       github_link: profile?.basic_info.github_link || '',
-      portfolio_link: profile?.basic_info.portfolio_link || ''
+      portfolio_link: profile?.basic_info.portfolio_link || '',
+      
+      // Skills & Interests
+      skills: profile?.personal_details.skills?.map((skill: any) => 
+        typeof skill === 'string' ? skill : skill.name
+      ) || [],
+      certifications: profile?.personal_details.certifications?.map((cert: any) => 
+        typeof cert === 'string' ? cert : cert.name
+      ) || [],
+      languages_spoken: profile?.personal_details.languages_spoken?.map((lang: any) => 
+        typeof lang === 'string' ? lang : lang.language
+      ) || [],
+      interests: profile?.personal_details.interests || [],
+      learning_goals: profile?.personal_details.learning_goals?.map((goal: any) => 
+        typeof goal === 'string' ? goal : goal.goal
+      ) || [],
+      preferred_study_times: profile?.personal_details.preferred_study_times || []
     });
+    
+    // Debug: Log the edit data for date of birth and education
+    console.log('🔍 Edit Profile Debug:', {
+      profileDateOfBirth: profile?.personal_details.date_of_birth,
+      formattedDateOfBirth: formatDateForInput(profile?.personal_details.date_of_birth),
+      editDataDateOfBirth: editData.date_of_birth,
+      educationLevel: profile?.personal_details.education_level,
+      editDataEducationLevel: editData.education_level
+    });
+    
     setIsEditingProfile(true);
   };
 
   const handleSave = async () => {
+    console.log('🔄 Starting profile save...');
+    console.log('📝 Current editData:', editData);
+    console.log('🎓 Education Level Debug:', {
+      educationLevel: editData.education_level,
+      institutionName: editData.institution_name,
+      fieldOfStudy: editData.field_of_study,
+      graduationYear: editData.graduation_year
+    });
+    console.log('🌐 API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'Using default');
+    console.log('🔑 Token available:', !!getAuthToken());
+    
     setSaving(true);
     try {
-      // Prepare the data for API call
-      const updateData = {
-        // Basic Information
-        full_name: editData.full_name,
-        bio: editData.bio,
+      // Prepare the data for API call with proper structure
+      const updateData: any = {
+        // Basic Information - direct fields
+        full_name: editData.full_name?.trim() || undefined,
+        bio: editData.bio?.trim() || undefined,
+        age: editData.age ? parseInt(editData.age) : undefined,
+        address: editData.address?.trim() || undefined,
+        country: editData.country?.trim() || undefined,
+        timezone: editData.timezone?.trim() || undefined,
         
-        // Phone numbers - convert string to array format
-        phone_numbers: editData.phone_number ? [{
-          country: 'IN', // Default to India, you can make this dynamic
-          number: editData.phone_number
+        // Phone numbers - ensure proper format
+        phone_numbers: editData.phone_number?.trim() ? [{
+          country: 'IN',
+          number: editData.phone_number.trim()
         }] : undefined,
         
-        // Personal details in meta object
+        // Social Media Links - handle both filled and empty values properly
+        facebook_link: editData.facebook_link?.trim() || null,
+        instagram_link: editData.instagram_link?.trim() || null,
+        linkedin_link: editData.linkedin_link?.trim() || null,
+        twitter_link: editData.twitter_link?.trim() || null,
+        youtube_link: editData.youtube_link?.trim() || null,
+        github_link: editData.github_link?.trim() || null,
+        portfolio_link: editData.portfolio_link?.trim() || null,
+        
+        
+        // Meta object for personal details
         meta: {
-          date_of_birth: editData.date_of_birth,
-          gender: editData.gender,
-          nationality: editData.nationality,
-          occupation: editData.occupation,
-          industry: editData.industry,
-          company: editData.company,
-          experience_level: editData.experience_level,
-          annual_income_range: editData.annual_income_range,
-          skills: editData.skills,
-          certifications: editData.certifications,
-          languages_spoken: editData.languages_spoken?.map((lang: string) => ({
-            language: lang,
-            proficiency: 'fluent' // Default proficiency, you can make this dynamic
-          }))
-        },
-        
-        // Social Media Links
-        facebook_link: editData.facebook_link,
-        instagram_link: editData.instagram_link,
-        linkedin_link: editData.linkedin_link,
-        twitter_link: editData.twitter_link,
-        youtube_link: editData.youtube_link,
-        github_link: editData.github_link,
-        portfolio_link: editData.portfolio_link,
-        
-        // Other fields
-        timezone: editData.timezone,
-        country: editData.country,
-        address: editData.address,
-        organization: editData.organization,
-        age: editData.age
+          // Only include fields that have values
+          ...(editData.date_of_birth && { date_of_birth: editData.date_of_birth }),
+          ...(editData.gender?.trim() && { gender: editData.gender.trim() }),
+          ...(editData.nationality?.trim() && { nationality: editData.nationality.trim() }),
+          
+          // Education Information - Always include these fields
+          education_level: editData.education_level || '',
+          institution_name: editData.institution_name || '',
+          field_of_study: editData.field_of_study || '',
+          graduation_year: editData.graduation_year ? parseInt(editData.graduation_year) : null,
+          
+          // Arrays - only include if not empty
+          ...(editData.skills?.length > 0 && { skills: editData.skills }),
+          ...(editData.certifications?.length > 0 && { 
+            certifications: editData.certifications.map((cert: string) => ({
+              name: cert.trim(),
+              issuer: 'Unknown',
+              year: new Date().getFullYear(),
+              is_verified: false
+            }))
+          }),
+          ...(editData.languages_spoken?.length > 0 && {
+            languages_spoken: editData.languages_spoken.map((lang: string) => ({
+              language: lang.trim(),
+              proficiency: 'fluent'
+            }))
+          }),
+          ...(editData.interests?.length > 0 && { interests: editData.interests }),
+          ...(editData.learning_goals?.length > 0 && {
+            learning_goals: editData.learning_goals.map((goal: string) => ({
+              goal: goal.trim(),
+              priority: 'medium',
+              progress: 0
+            }))
+          }),
+          ...(editData.preferred_study_times?.length > 0 && {
+            preferred_study_times: editData.preferred_study_times.map((time: string) => ({
+              day: 'monday',
+              start_time: '09:00',
+              end_time: '11:00'
+            }))
+          })
+        }
       };
 
-      // Remove undefined values to avoid sending empty data
+      // Remove undefined values and empty meta object, but preserve null values for social media links
       Object.keys(updateData).forEach(key => {
-        if (updateData[key as keyof typeof updateData] === undefined || updateData[key as keyof typeof updateData] === '') {
-          delete updateData[key as keyof typeof updateData];
+        const value = updateData[key];
+        const isSocialMediaLink = [
+          'facebook_link', 'instagram_link', 'linkedin_link', 
+          'twitter_link', 'youtube_link', 'github_link', 'portfolio_link'
+        ].includes(key);
+        
+        if (value === undefined || value === '' || (!isSocialMediaLink && value === null)) {
+          delete updateData[key];
         }
       });
 
-      console.log('Saving profile with data:', updateData);
+      // Clean up meta object - remove if empty
+      if (updateData.meta && Object.keys(updateData.meta).length === 0) {
+        delete updateData.meta;
+      }
+
+      console.log('💾 Saving profile with data:', updateData);
+      console.log('🔗 API URL will be:', '/profile/me/comprehensive');
       
-      // Make API call to update profile using comprehensive endpoint
+      // Debug: Log what fields are being sent
+      console.log('🔍 Debug - EditData vs UpdateData:', {
+        editDataFields: Object.keys(editData),
+        updateDataFields: Object.keys(updateData),
+        metaFields: updateData.meta ? Object.keys(updateData.meta) : 'No meta object'
+      });
+      
+      // Debug: Log education fields specifically
+      console.log('🎓 Education Fields Debug:', {
+        editDataEducation: {
+          education_level: editData.education_level,
+          institution_name: editData.institution_name,
+          field_of_study: editData.field_of_study,
+          graduation_year: editData.graduation_year
+        },
+        metaEducation: updateData.meta ? {
+          education_level: updateData.meta.education_level,
+          institution_name: updateData.meta.institution_name,
+          field_of_study: updateData.meta.field_of_study,
+          graduation_year: updateData.meta.graduation_year
+        } : 'No meta object'
+      });
+      
+      // Debug: Log social media links specifically
+      console.log('📱 Social Media Links Debug:', {
+        editDataSocialLinks: {
+          facebook: editData.facebook_link,
+          instagram: editData.instagram_link,
+          linkedin: editData.linkedin_link,
+          twitter: editData.twitter_link,
+          youtube: editData.youtube_link,
+          github: editData.github_link,
+          portfolio: editData.portfolio_link
+        },
+        updateDataSocialLinks: {
+          facebook: updateData.facebook_link,
+          instagram: updateData.instagram_link,
+          linkedin: updateData.linkedin_link,
+          twitter: updateData.twitter_link,
+          youtube: updateData.youtube_link,
+          github: updateData.github_link,
+          portfolio: updateData.portfolio_link
+        }
+      });
+      
+      // Make the API call
       const response = await updateCurrentUserComprehensiveProfile(updateData);
+      console.log('✅ Profile update response:', response);
       
-      if (response.data) {
+      if (response && response.data) {
         showToast.dismiss(); // Dismiss any existing toasts
         showToast.success('Profile updated successfully!');
         
-        // Auto-refresh the profile data using the centralized fetchProfile function
+        // Log profile completion update
+        console.log('📊 Profile completion update:', {
+          oldCompletion: profile?.basic_info?.profile_completion || 0,
+          newCompletion: response.data.profile_completion || response.data.user?.profile_completion || 0,
+          response: response.data
+        });
+        
+        // Auto-refresh the profile data
         await fetchProfile();
         
         // Close the edit modal
         handleCancel();
       } else {
-        throw new Error('Failed to update profile');
+        throw new Error('Failed to update profile - no response data');
       }
       
-    } catch (error: unknown) {
-      console.error('Error saving profile:', error);
+    } catch (error: any) {
+      console.error('❌ Error saving profile:', error);
       
       // Show specific error message
       let errorMessage = 'Failed to update profile. Please try again.';
       
-      if (error instanceof Error) {
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
         errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null) {
-        const errorObj = error as any;
-        errorMessage = errorObj?.response?.data?.message || 
-                      errorObj?.message || 
-                      errorMessage;
-        
-        // If validation errors, show them
-        if (errorObj?.response?.data?.errors && Array.isArray(errorObj.response.data.errors)) {
-          showToast.dismiss(); // Dismiss any existing toasts
-          errorObj.response.data.errors.forEach((err: any) => {
-            showToast.error(`${err.field}: ${err.message}`);
-          });
-        }
       }
       
-      showToast.dismiss(); // Dismiss any existing toasts
+      // Handle validation errors
+      if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        showToast.dismiss();
+        error.response.data.errors.forEach((err: any) => {
+          showToast.error(`${err.field || 'Field'}: ${err.message}`);
+        });
+        return;
+      }
+      
+      showToast.dismiss();
       showToast.error(errorMessage);
     } finally {
       setSaving(false);
@@ -486,6 +619,9 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       }
       
       console.log('🔄 Fetching comprehensive user profile...');
+      console.log('🔑 Token available:', !!token);
+      console.log('🌐 API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'Using default');
+      
       const response = await getComprehensiveUserProfile();
       console.log('📡 API Response:', response);
       
@@ -494,6 +630,13 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       
       if (serverResponse && serverResponse.success && serverResponse.data) {
         const apiData = serverResponse.data as any;
+        
+        console.log('📊 Profile Data Received:', {
+          hasBasicInfo: !!apiData.basic_info,
+          hasPersonalDetails: !!apiData.personal_details,
+          hasProfileMedia: !!apiData.profile_media,
+          profileCompletion: apiData.basic_info?.profile_completion || 0
+        });
         
         const transformedProfile: ComprehensiveProfile = {
             basic_info: {
@@ -504,9 +647,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               student_id: apiData.basic_info?.student_id || '',
               phone_numbers: apiData.basic_info?.phone_numbers || [],
               age: apiData.basic_info?.age || 0,
-              age_group: apiData.basic_info?.age_group || '',
               address: apiData.basic_info?.address || '',
-              organization: apiData.basic_info?.organization || '',
               bio: apiData.basic_info?.bio || '',
               country: apiData.basic_info?.country || '',
               timezone: apiData.basic_info?.timezone || '',
@@ -533,11 +674,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               gender: apiData.personal_details?.gender || '',
               nationality: apiData.personal_details?.nationality || '',
               languages_spoken: apiData.personal_details?.languages_spoken || [],
-              occupation: apiData.personal_details?.occupation || '',
-              industry: apiData.personal_details?.industry || '',
-              company: apiData.personal_details?.company || '',
-              experience_level: apiData.personal_details?.experience_level || '',
-              annual_income_range: apiData.personal_details?.annual_income_range || '',
+
               education_level: apiData.personal_details?.education_level || '',
               institution_name: apiData.personal_details?.institution_name || '',
               field_of_study: apiData.personal_details?.field_of_study || '',
@@ -654,6 +791,20 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           
           setProfile(transformedProfile);
           
+          // Debug: Log the date of birth value
+          console.log('🔍 Date of Birth Debug:', {
+            raw: apiData.personal_details?.date_of_birth,
+            formatted: formatDateForInput(apiData.personal_details?.date_of_birth),
+            type: typeof apiData.personal_details?.date_of_birth
+          });
+          
+          // Debug: Log all personal details
+          console.log('🔍 Personal Details Debug:', {
+            personal_details: apiData.personal_details,
+            basic_info: apiData.basic_info,
+            meta: apiData.meta
+          });
+          
           // Show success message only if it's a manual refresh (not initial load)
           if (profile) {
             showToast.dismiss(); // Dismiss any existing toasts
@@ -686,9 +837,16 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
             window.location.href = "/login";
           }, 2000);
         } else {
+          // Check if it's a network/server error
+          if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) {
+            setError('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+            showToast.dismiss();
+            showToast.error('Server connection failed. Please try again later.');
+        } else {
           setError('Failed to load profile data. Please try again.');
-          showToast.dismiss(); // Dismiss any existing toasts
+            showToast.dismiss();
           showToast.error('Failed to refresh profile data. Please try again.');
+          }
         }
       } finally {
         setLoading(false);
@@ -730,13 +888,18 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       errors.push('Current password is required');
     }
     
-    // New password validation - basic requirements only
+    // New password validation - simplified requirements
     if (!passwordData.new_password) {
       errors.push('New password is required');
     } else {
-      // Only check if password is not empty
-      if (passwordData.new_password.length === 0) {
-        errors.push('New password cannot be empty');
+      // Length validation (6-128 characters)
+      if (passwordData.new_password.length < 6) {
+        errors.push('New password must be at least 6 characters long');
+      }
+      
+      if (passwordData.new_password.length > 128) {
+        errors.push('New password must not exceed 128 characters');
+      }
       }
       
       // Check if new password is different from current
@@ -801,7 +964,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         method: 'PUT', // Backend uses PUT method
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Accept': 'application/json'
         },
         body: JSON.stringify({
@@ -1009,6 +1172,16 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
+      /* Custom breakpoint for extra small screens */
+      @media (min-width: 475px) {
+        .xs\\:block { display: block !important; }
+        .xs\\:inline { display: inline !important; }
+        .xs\\:h-10 { height: 2.5rem !important; }
+        .xs\\:w-10 { width: 2.5rem !important; }
+        .xs\\:text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+        .xs\\:text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+      }
+      
       /* Improve scrollbar for tab navigation */
       .scrollbar-hide {
         -ms-overflow-style: none;
@@ -1052,6 +1225,21 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         .mobile-tap-target {
           min-height: 44px;
           min-width: 44px;
+        }
+      }
+      
+      /* Enhanced mobile responsiveness */
+      @media (max-width: 640px) {
+        .mobile-optimized-text {
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+        }
+      }
+      
+      /* Improved form responsiveness */
+      @media (max-width: 480px) {
+        .mobile-form-grid {
+          grid-template-columns: 1fr;
         }
       }
     `;
@@ -1112,23 +1300,25 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     account_insights
   } = profile;
 
+
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
         {/* Enhanced Mobile-Optimized Fixed Header with Profile Info */}
         <div className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+          <div className="px-2 sm:px-4 md:px-6 py-2 sm:py-4">
             <div className="flex items-center justify-between">
               {/* Mobile-optimized profile section */}
               <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
                 {/* Smaller profile image on mobile */}
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg flex-shrink-0">
+                <div className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs xs:text-sm sm:text-lg flex-shrink-0">
                   {basic_info?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     {/* Responsive heading */}
-                    <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+                    <h1 className="text-sm xs:text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
                       {basic_info?.full_name || 'Unknown User'}
                     </h1>
                     {refreshing && (
@@ -1143,7 +1333,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
                     {basic_info?.email || 'No email'}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate hidden xs:block">
                     Last login: {basic_info?.last_seen ? formatLastLogin(basic_info.last_seen) : 'Never'}
                   </p>
                 </div>
@@ -1151,8 +1341,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
               
               {/* Mobile-optimized action buttons */}
               <div className="flex items-center space-x-1 sm:space-x-2">
-                {/* Profile completion - hidden on very small screens */}
-                <div className="text-right hidden xs:block">
+                {/* Profile completion - responsive display */}
+                <div className="text-right hidden sm:block">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Completion</p>
                   <p className="text-sm sm:text-lg font-bold text-blue-600">
                     {basic_info?.profile_completion || 0}%
@@ -1162,32 +1352,32 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                 {/* Touch-friendly buttons */}
                 <button 
                   onClick={() => fetchProfile()}
-                  className="mobile-touch-feedback mobile-tap-target p-2 sm:p-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                  className="mobile-touch-feedback mobile-tap-target p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center justify-center"
                   title="Refresh Profile Data"
                   disabled={loading || refreshing}
                 >
-                  <svg className={`h-4 w-4 sm:h-5 sm:w-5 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 </button>
                 <button 
                   onClick={handleEditProfile}
-                  className="mobile-touch-feedback mobile-tap-target p-2 sm:p-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
+                  className="mobile-touch-feedback mobile-tap-target p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
                   title="Edit Profile"
                 >
-                  <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </button>
                 
                 {/* Mobile menu toggle - only visible on very small screens */}
                 <button 
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="mobile-touch-feedback mobile-tap-target p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center md:hidden mobile-menu-container"
+                  className="mobile-touch-feedback mobile-tap-target p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center md:hidden mobile-menu-container"
                   title="Menu"
                 >
                   {isMobileMenuOpen ? (
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   ) : (
-                    <Menu className="h-4 w-4" />
+                    <Menu className="h-3.5 w-3.5" />
                   )}
                 </button>
               </div>
@@ -1197,15 +1387,15 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           {/* Enhanced Mobile-Optimized Tab Navigation */}
           <div className="relative">
             {/* Current tab indicator for mobile */}
-            <div className="block md:hidden px-3 sm:px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+            <div className="block md:hidden px-2 sm:px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   {tabs.find(tab => tab.id === activeTab) && (
                     <>
                       {React.createElement(tabs.find(tab => tab.id === activeTab)!.icon, {
-                        className: "h-4 w-4 text-blue-600"
+                        className: "h-3.5 w-3.5 text-blue-600"
                       })}
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                         {tabs.find(tab => tab.id === activeTab)!.label}
                       </span>
                     </>
@@ -1220,7 +1410,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
             </div>
 
             {/* Desktop tab navigation */}
-            <div className="hidden md:block px-3 sm:px-4 md:px-6">
+            <div className="hidden md:block px-2 sm:px-4 md:px-6">
               <div 
                 ref={tabScrollRef}
                 className="flex space-x-1 overflow-x-auto scrollbar-hide tab-scroll -mb-px"
@@ -1236,14 +1426,15 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                       key={tab.id}
                       data-tab={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium rounded-t-lg whitespace-nowrap transition-all duration-200 min-h-[44px] relative ${
+                      className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-t-lg whitespace-nowrap transition-all duration-200 min-h-[44px] relative ${
                         isActive
                           ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-b-2 border-blue-600'
                           : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
                       <Icon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="hidden sm:inline">{tab.label}</span>
+                      <span className="hidden lg:inline">{tab.label}</span>
+                      <span className="hidden sm:inline lg:hidden">{tab.shortLabel}</span>
                       <span className="sm:hidden">{tab.shortLabel}</span>
                       
                       {/* Active indicator dot */}
@@ -1328,9 +1519,11 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           </div>
         </div>
 
+
+
         {/* Enhanced Mobile-Optimized Tab Content with Gesture Support */}
         <div 
-          className="p-3 sm:p-4 md:p-6"
+          className="p-2 sm:p-4 md:p-6"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -1362,60 +1555,60 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                 className="space-y-4 sm:space-y-6"
               >
                 {/* Mobile-Optimized Quick Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Courses</p>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                        <p className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                           {learning_analytics.total_courses_enrolled}
                         </p>
                       </div>
-                      <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
+                      <BookOpen className="h-4 w-4 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-blue-600 flex-shrink-0" />
                     </div>
                   </div>
                   
-                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Certificates</p>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                        <p className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                           {learning_analytics.certificates_earned}
                         </p>
                       </div>
-                      <Award className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600 flex-shrink-0" />
+                      <Award className="h-4 w-4 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-yellow-600 flex-shrink-0" />
                     </div>
                   </div>
                   
-                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Streak</p>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                        <p className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                           {learning_analytics.current_streak}
                         </p>
                       </div>
-                      <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
+                      <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-green-600 flex-shrink-0" />
                     </div>
                   </div>
                   
-                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Time</p>
-                        <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                        <p className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                           {formatDuration(learning_analytics.total_learning_time)}
                         </p>
                       </div>
-                      <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
+                      <Clock className="h-4 w-4 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-purple-600 flex-shrink-0" />
                     </div>
                   </div>
                 </div>
 
                 {/* Mobile-Optimized Account Details & Community */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
                       <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
                       Account Details
                     </h3>
@@ -1442,8 +1635,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 sm:p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
                       <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
                       Community
                     </h3>
@@ -2331,20 +2524,12 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                         <p className="text-gray-900 dark:text-white">{basic_info?.age || 'Not specified'}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Age Group</label>
-                        <p className="text-gray-900 dark:text-white capitalize">{basic_info?.age_group || 'Not specified'}</p>
-                      </div>
-                      <div>
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
                         <p className="text-gray-900 dark:text-white">{basic_info?.country || 'Not specified'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
                         <p className="text-gray-900 dark:text-white text-sm">{basic_info?.address || 'Not provided'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Organization</label>
-                        <p className="text-gray-900 dark:text-white">{basic_info?.organization || 'Not specified'}</p>
                       </div>
                     </div>
                   </div>
@@ -2373,28 +2558,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nationality</label>
                         <p className="text-gray-900 dark:text-white">{personal_details.nationality || 'Not specified'}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Occupation</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.occupation || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Industry</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.industry || 'Not specified'}</p>
-                      </div>
                     </div>
                     <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.company || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Experience Level</label>
-                        <p className="text-gray-900 dark:text-white capitalize">{personal_details.experience_level || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Annual Income Range</label>
-                        <p className="text-gray-900 dark:text-white">{personal_details.annual_income_range || 'Prefer not to say'}</p>
-                      </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Timezone</label>
                         <p className="text-gray-900 dark:text-white">{basic_info?.timezone || 'Not specified'}</p>
@@ -2542,10 +2707,12 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                       <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">Certifications</h4>
                       {personal_details.certifications && personal_details.certifications.length > 0 ? (
                         <div className="space-y-2">
-                          {personal_details.certifications.map((cert: string, index: number) => (
+                          {personal_details.certifications.map((cert: any, index: number) => (
                             <div key={index} className="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
                               <Award className="h-4 w-4 text-yellow-600 mr-2" />
-                              <span className="text-sm text-gray-900 dark:text-white">{cert}</span>
+                              <span className="text-sm text-gray-900 dark:text-white">
+                                {typeof cert === 'string' ? cert : cert.name || 'Unknown Certification'}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -2558,10 +2725,12 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                       <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">Learning Goals</h4>
                       {personal_details.learning_goals && personal_details.learning_goals.length > 0 ? (
                         <div className="space-y-2">
-                          {personal_details.learning_goals.map((goal: string, index: number) => (
+                          {personal_details.learning_goals.map((goal: any, index: number) => (
                             <div key={index} className="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
                               <Target className="h-4 w-4 text-orange-600 mr-2" />
-                              <span className="text-sm text-gray-900 dark:text-white">{goal}</span>
+                              <span className="text-sm text-gray-900 dark:text-white">
+                                {typeof goal === 'string' ? goal : goal.goal || 'Unknown Goal'}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -2613,30 +2782,30 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
 
       {/* Edit Profile Modal */}
       {isEditingProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-6xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
           >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Profile Information</h3>
+            <div className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Edit Profile Information</h3>
                 <button
                   onClick={handleCancel}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   aria-label="Close edit profile"
                 >
-                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                  <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Basic Information Section */}
                 <div>
-                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-600">Basic Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <h4 className="text-sm sm:text-md font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 pb-2 border-b border-gray-200 dark:border-gray-600">Basic Information</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mobile-form-grid">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Full Name
@@ -2660,6 +2829,45 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       />
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Age
+                      </label>
+                      <input
+                        type="number"
+                        value={editData.age || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, age: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="e.g., 25"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Country
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.country || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, country: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="e.g., India, United States"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Address
+                      </label>
+                      <textarea
+                        value={editData.address || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, address: e.target.value }))}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="Enter your full address"
+                      />
+                    </div>
                     
                     <div className="md:col-span-2 lg:col-span-3">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -2675,63 +2883,67 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   </div>
                 </div>
 
-                {/* Personal Details Section */}
+                {/* Education Information Section */}
                 <div>
-                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-600">Personal Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-600">Education Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Date of Birth
-                      </label>
-                      <input
-                        type="date"
-                        value={editData.date_of_birth || ''}
-                        onChange={(e) => setEditData(prev => ({ ...prev, date_of_birth: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Gender
+                        Education Level
                       </label>
                       <select
-                        value={editData.gender || ''}
-                        onChange={(e) => setEditData(prev => ({ ...prev, gender: e.target.value }))}
+                        value={editData.education_level || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, education_level: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="non-binary">Non-binary</option>
-                        <option value="prefer-not-to-say">Prefer not to say</option>
-                        <option value="other">Other</option>
+                        <option value="">Select Education Level</option>
+                        <option value="High School">High School</option>
+                        <option value="Diploma">Diploma</option>
+                        <option value="Bachelor's Degree">Bachelor's Degree</option>
+                        <option value="Master's Degree">Master's Degree</option>
+                        <option value="Doctorate/PhD">PhD</option>
+                        <option value="Other">Other</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Nationality
+                        Institution Name
                       </label>
                       <input
                         type="text"
-                        value={editData.nationality || ''}
-                        onChange={(e) => setEditData(prev => ({ ...prev, nationality: e.target.value }))}
+                        value={editData.institution_name || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, institution_name: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="e.g., Indian, American"
+                        placeholder="e.g., University of Delhi"
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Timezone
+                        Field of Study
                       </label>
                       <input
                         type="text"
-                        value={editData.timezone || ''}
-                        onChange={(e) => setEditData(prev => ({ ...prev, timezone: e.target.value }))}
+                        value={editData.field_of_study || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, field_of_study: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="e.g., Asia/Kolkata"
+                        placeholder="e.g., Computer Science"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Graduation Year
+                      </label>
+                      <input
+                        type="number"
+                        value={editData.graduation_year || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, graduation_year: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="e.g., 2023"
+                        min="1950"
+                        max={new Date().getFullYear() + 10}
                       />
                     </div>
                   </div>
@@ -2885,6 +3097,68 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                     </div>
                   </div>
                 </div>
+
+                {/* Personal Details Section */}
+                <div>
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-600">Personal Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Date of Birth
+                      </label>
+                      <input
+                        type="date"
+                        value={editData.date_of_birth || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Gender
+                      </label>
+                      <select
+                        value={editData.gender || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, gender: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="non-binary">Non-binary</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Nationality
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.nationality || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, nationality: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="e.g., Indian, American"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Timezone
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.timezone || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, timezone: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="e.g., Asia/Kolkata"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-end mt-6">
@@ -2967,86 +3241,10 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Occupation
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.occupation || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, occupation: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="e.g., Software Engineer"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Industry
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.industry || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, industry: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="e.g., Technology, Healthcare"
-                    />
-                  </div>
                 </div>
 
                 {/* Right Column */}
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Company
-                    </label>
-                    <input
-                      type="text"
-                      value={editData.company || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, company: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="e.g., Google, Microsoft"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Experience Level
-                    </label>
-                    <select
-                      value={editData.experience_level || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, experience_level: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="">Select Experience Level</option>
-                      <option value="entry">Entry Level</option>
-                      <option value="mid">Mid Level</option>
-                      <option value="senior">Senior Level</option>
-                      <option value="executive">Executive</option>
-                      <option value="student">Student</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Annual Income Range
-                    </label>
-                    <select
-                      value={editData.annual_income_range || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, annual_income_range: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="">Select Income Range</option>
-                      <option value="under-25k">Under $25,000</option>
-                      <option value="25k-50k">$25,000 - $50,000</option>
-                      <option value="50k-75k">$50,000 - $75,000</option>
-                      <option value="75k-100k">$75,000 - $100,000</option>
-                      <option value="100k-150k">$100,000 - $150,000</option>
-                      <option value="150k-plus">$150,000+</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
-                    </select>
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -3367,6 +3565,7 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           </motion.div>
         </div>
       )}
+
     </div>
   );
 };

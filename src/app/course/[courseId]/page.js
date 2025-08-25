@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 // Core components
 import PageWrapper from "@/components/shared/wrappers/PageWrapper";
 import ThemeController from "@/components/shared/others/ThemeController";
-import CourseDetailsPage from '@/components/pages/CourseDetailsPage';
+import CourseDetailsPage from '@/components/page-components/CourseDetailsPage';
 import { Toaster } from 'react-hot-toast';
 
 export default function CourseDetailPage() {

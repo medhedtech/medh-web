@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { apiBaseUrl } from '@/apis/config';
 /**
  * GET handler to fetch dashboards
  * @param request - The incoming request
@@ -7,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const BASE_URL = apiBaseUrl;
     
     // Fetch dashboards data from backend
     const response = await fetch(`${BASE_URL}/live-classes/dashboards`, {
