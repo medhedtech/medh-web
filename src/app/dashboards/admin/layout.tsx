@@ -3,8 +3,6 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import AdminDashboardLayout from "@/components/sections/dashboards/AdminDashboardLayout";
 import { usePathname } from "next/navigation";
-import { useRequireAuth } from "@/hooks/useRequireAuth";
-import LoadingIndicator from "@/components/shared/loaders/LoadingIndicator";
 
 // Define types for the context
 interface AdminContextType {
@@ -31,15 +29,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [activeMenu, setActiveMenu] = useState<string | null>("Dashboard");
   const [activeSubItems, setActiveSubItems] = useState<any[]>([]);
   const pathname = usePathname();
-
-  // Add authentication check for admin routes - ALWAYS call this hook
-  const { loading, authorized } = useRequireAuth({
-    roles: ['admin', 'super-admin'],
-    redirectTo: '/login',
-    onAuthFailure: (reason) => {
-      console.log('Admin access denied:', reason);
-    }
-  });
 
   // Handle menu click from SidebarDashboard
   const handleMenuClick = (menuName: string, items: any[]) => {
@@ -78,20 +67,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname]);
 
-  // Show loading while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <LoadingIndicator />
-      </div>
-    );
-  }
-
-  // Redirect if not authorized (this will be handled by useRequireAuth)
-  if (!authorized) {
-    return null;
-  }
-
   // Context value
   const contextValue: AdminContextType = {
     activeMenu,
@@ -105,6 +80,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <AdminContext.Provider value={contextValue}>
       <AdminDashboardLayout 
         userRole="admin"
+        activeMenu={activeMenu}
+        activeSubItems={activeSubItems}
+        onMenuClick={handleMenuClick}
       >
         {children}
       </AdminDashboardLayout>

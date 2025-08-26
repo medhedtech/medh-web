@@ -187,8 +187,7 @@ const DownloadBrochureModal = ({
       };
       
       // Use direct backend URL with explicit CORS settings to avoid any middleware
-      // Import the API base URL from our centralized config
-import { apiBaseUrl as backendUrl } from '../../apis/config';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080/api/v1';
       const response = await fetch(`${backendUrl}/broucher/create`, {
         method: 'POST',
         headers: {

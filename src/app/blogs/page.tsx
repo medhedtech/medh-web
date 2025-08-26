@@ -8,8 +8,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { generateBlogListingSEO, generateBlogListingStructuredData } from '@/utils/blog-seo';
 
-// Import the API base URL from our centralized config
-import { apiBaseUrl as API_BASE_URL } from '../../../apis/config';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 // Define the SearchParams interface
 interface SearchParams {

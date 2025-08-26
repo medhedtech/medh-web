@@ -1024,9 +1024,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
       // Use the same API logic as the main fetch
       let apiEndpoint;
       if (normalizedCategory === 'digital-marketing') {
-        // Import the API base URL from our centralized config
-        const { apiBaseUrl } = await import('../../../apis/config');
-        const baseUrl = apiBaseUrl;
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
         apiEndpoint = `${baseUrl}/courses/search?page=${currentPage}&limit=12&sort_by=createdAt&sort_order=desc&status=Published&currency=${userCurrency.toLowerCase()}&course_category=Digital%2520Marketing%2520with%2520Data%2520Analytics`;
       } else {
         apiEndpoint = getAllCoursesWithLimits({
@@ -1214,9 +1212,7 @@ const CategoryEnrollmentPage: React.FC<CategoryEnrollmentPageProps> = ({ params 
         let apiEndpoint;
         if (normalizedCategory === 'digital-marketing') {
           // Use the exact digital marketing endpoint as specified
-          // Import the API base URL from our centralized config
-          const { apiBaseUrl } = await import('../../../apis/config');
-          const baseUrl = apiBaseUrl;
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
           apiEndpoint = `${baseUrl}/courses/search?page=${currentPage}&limit=12&sort_by=createdAt&sort_order=desc&status=Published&currency=${userCurrency.toLowerCase()}&course_category=Digital%2520Marketing%2520with%2520Data%2520Analytics`;
         } else {
           // Construct API endpoint using apiUrls helper for other categories

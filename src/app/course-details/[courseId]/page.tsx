@@ -4,8 +4,7 @@ import { Metadata } from 'next';
 import { generateCourseSEO, generateCourseStructuredData, CourseData } from '@/utils/course-seo';
 import CourseViewClient from './CourseViewClient';
 
-// Import the API base URL from our centralized config
-import { apiBaseUrl as API_BASE_URL } from '../../../../apis/config';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 interface CoursePageProps {
   params: {

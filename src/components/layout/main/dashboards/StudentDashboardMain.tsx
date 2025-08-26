@@ -824,9 +824,7 @@ const StudentDashboardMain: React.FC = () => {
       if (!studentId) return;
 
       try {
-        // Import the API base URL from our centralized config
-        const { apiBaseUrl } = await import('../../../../apis/config');
-        const response = await fetch(`${apiBaseUrl}/enrollments/student/${studentId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:8080/api/v1' : 'https://api.medh.co')}/enrollments/student/${studentId}`);
         
         if (response.ok) {
           const data = await response.json();

@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Import the API base URL from our centralized config
-import { apiBaseUrl } from '../../../../../../apis/config';
 
 export async function GET(
   request: NextRequest,
@@ -67,7 +65,7 @@ export async function GET(
 
     // Try calling the external API for other certificates
     try {
-      const externalApiUrl = `${apiBaseUrl}/certificates/verify/${certificateId}`;
+      const externalApiUrl = `http://localhost:8080/api/v1/certificates/verify/${certificateId}`;
       console.log('Calling external API:', externalApiUrl);
 
       const response = await fetch(externalApiUrl, {

@@ -31,7 +31,7 @@ const schema = yup
       .required("Confirm password is required"),
     password: yup
       .string()
-      .min(6, "At least 6 characters required")
+      .min(8, "At least 8 characters required")
       .required("Password is required"),
     agree_terms: yup
       .boolean()

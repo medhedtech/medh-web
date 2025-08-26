@@ -11,9 +11,12 @@ import useAuth from '@/hooks/useAuth';
 import { apiUrls, apiBaseUrl } from "@/apis";
 import countryCodes from "@/utils/countrycode.json";
 
-// Generate a random password - NO RESTRICTIONS
-const generatePassword = (length = 8): string => {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+// Generate a random password
+const generatePassword = (length = 10): string => {
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numbers = "0123456789";
+  const special = "@$!%*?&"; // Updated to match backend validation requirements
   
   // Use crypto.getRandomValues for better randomness and avoid hydration issues
   const getRandomChar = (chars: string): string => {
@@ -26,22 +29,56 @@ const generatePassword = (length = 8): string => {
     return chars.charAt(Math.floor(Math.random() * chars.length));
   };
   
+  // Ensure at least one of each required character type
   let password = "";
-  for (let i = 0; i < length; i++) {
-    password += getRandomChar(chars);
+  password += getRandomChar(lowercase);
+  password += getRandomChar(uppercase);
+  password += getRandomChar(numbers);
+  password += getRandomChar(special);
+  
+  // Fill the rest randomly
+  const allChars = lowercase + uppercase + numbers + special;
+  for (let i = password.length; i < length; i++) {
+    password += getRandomChar(allChars);
   }
   
-  return password;
+  // Simple shuffle without Math.random to avoid hydration issues
+  const chars = password.split('');
+  for (let i = chars.length - 1; i > 0; i--) {
+    if (typeof window !== 'undefined' && window.crypto) {
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      const j = array[0] % (i + 1);
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+  }
+  
+  return chars.join('');
 };
 
-// Calculate password strength - NO RESTRICTIONS
+// Calculate password strength
 const calculatePasswordStrength = (password: string | undefined): { score: number; message: string } => {
-  if (!password || password.length === 0) {
-    return { score: 0, message: "Password cannot be empty" };
-  }
+  if (!password) return { score: 0, message: "" };
   
-  // Any non-empty password is considered strong
-  return { score: 5, message: "Strong" };
+  let score = 0;
+  let message = "";
+
+  // Length check
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+
+  // Character type checks
+  if (/[a-z]/.test(password)) score += 1; // lowercase
+  if (/[A-Z]/.test(password)) score += 1; // uppercase
+  if (/\d/.test(password)) score += 1; // number
+  if (/[@$!%*?&]/.test(password)) score += 1; // special character
+
+  // Determine strength message
+  if (score < 3) message = "Weak";
+  else if (score < 5) message = "Medium";
+  else message = "Strong";
+
+  return { score, message };
 };
 
 export interface AddStudentFormProps {
@@ -74,7 +111,10 @@ const schema = yup.object().shape({
     is: true,
     then: (schema) => schema
       .required("Password is required")
-      .min(1, "Password cannot be empty"),
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character (@$!%*?&)"
+      ),
     otherwise: (schema) => schema.optional()
   }),
   use_manual_password: yup.boolean().default(false),
@@ -152,8 +192,9 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onCancel, onSuccess }) 
 
       // Validate password if using manual password
       if (data.use_manual_password) {
-        if (!password || password.length === 0) {
-          showToast.error('Password cannot be empty');
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+          showToast.error('Password must contain at least one uppercase letter, one lowercase letter, one number and one special character (@$!%*?&)');
           return;
         }
       }

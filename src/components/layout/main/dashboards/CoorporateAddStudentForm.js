@@ -25,10 +25,10 @@ const schema = yup.object({
     .required("Mobile number is required")
     .matches(/^[6-9]\d{9}$/, "Mobile number must be a valid 10-digit number"),
   gender: yup.string().required("Gender is required"),
-      password: yup
-      .string()
-      .min(6, "At least 6 characters required")
-      .required("Password is required"),
+  password: yup
+    .string()
+    .min(8, "At least 8 characters required")
+    .required("Password is required"),
   confirm_password: yup
     .string()
     .oneOf(

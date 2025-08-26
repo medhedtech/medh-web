@@ -100,8 +100,7 @@ const AuthCallbackPage: React.FC = () => {
 
         // Exchange code for tokens with the backend
         try {
-          // Import the API base URL from our centralized config
-import { apiBaseUrl } from '../../../apis/config';
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
           const response = await fetch(`${apiBaseUrl}/api/v1/auth/oauth/callback`, {
             method: 'POST',
             headers: { 

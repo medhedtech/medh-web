@@ -3,6 +3,8 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminDashboardLayout from '@/components/sections/dashboards/AdminDashboardLayout';
+import withAuth from '@/lib/withAuth';
+import { UserRole } from '@/interfaces/userRole';
 
 const AdminCurrencyPage = () => {
   const router = useRouter();
@@ -19,4 +21,4 @@ const AdminCurrencyPage = () => {
   );
 };
 
-export default AdminCurrencyPage; 
+export default withAuth(AdminCurrencyPage, [UserRole.ADMIN.toString(), UserRole.SUPER_ADMIN.toString()]); 

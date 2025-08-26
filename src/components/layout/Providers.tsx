@@ -20,7 +20,7 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const auth = useAuth();
   const router = useRouter();
   const [handleAuthErrors, setHandleAuthErrors] = useState(true);

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useContext, useState, useEffect } from "react";
-import { useRouter } from 'next/navigation';
 import { 
   BarChart, 
   Users, 
@@ -214,8 +213,6 @@ const formatTrend = (change: number): string => {
 };
 
 const AdminDashboard: React.FC = () => {
-  const router = useRouter();
-  
   // Use context if available from AdminDashboardLayout
   const dashboardContext = useContext(AdminDashboardContext);
   
@@ -223,8 +220,6 @@ const AdminDashboard: React.FC = () => {
   const [dashboardStats, setDashboardStats] = useState<IAdminDashboardStatsResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
 
   // Fetch dashboard stats
   const fetchDashboardStats = async () => {
@@ -249,74 +244,13 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Authentication check
-  useEffect(() => {
-    const checkAuth = () => {
-      // Check if user is logged in
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-      
-      // Check user role
-      const userRole = localStorage.getItem('role');
-      if (!userRole) {
-        router.push('/login');
-        return;
-      }
-      
-      // Check if user has admin or super-admin role
-      const normalizedUserRole = userRole.toLowerCase();
-      const allowedRoles = ['admin', 'super-admin'];
-      const userHasRequiredRole = allowedRoles.some(role => 
-        normalizedUserRole === role.toLowerCase()
-      );
-      
-      if (userHasRequiredRole) {
-        setIsAuthorized(true);
-        setAuthLoading(false);
-      } else {
-        // Redirect to appropriate dashboard based on role
-        if (normalizedUserRole === 'student') {
-          router.push('/dashboards/student-dashboard');
-        } else if (normalizedUserRole === 'instructor') {
-          router.push('/dashboards/instructor/');
-        } else if (normalizedUserRole === 'parent') {
-          router.push('/dashboards/parent-dashboard');
-        } else {
-          // Fallback to home
-          router.push('/');
-        }
-      }
-    };
-    
-    checkAuth();
-  }, [router]);
-
   // Load data on component mount
   useEffect(() => {
-    if (isAuthorized) {
-      console.log('🚀 AdminDashboard component mounted');
-      console.log('🔐 Auth token check:', typeof window !== 'undefined' ? localStorage.getItem('token') ? 'Token found' : 'No token' : 'SSR');
-      
-      fetchDashboardStats();
-    }
-  }, [isAuthorized]);
-
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
-  // Don't render if not authorized
-  if (!isAuthorized) {
-    return null;
-  }
+    console.log('🚀 AdminDashboard component mounted');
+    console.log('🔐 Auth token check:', typeof window !== 'undefined' ? localStorage.getItem('token') ? 'Token found' : 'No token' : 'SSR');
+    
+    fetchDashboardStats();
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
