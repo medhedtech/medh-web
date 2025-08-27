@@ -2,13 +2,13 @@ import React from "react";
 
 const TermsAndConditions = () => {
   return (
-    <div className="flex flex-col items-center px-4 py-8 bg-gray-100 dark:bg-screen-dark">
+    <div className="flex flex-col items-center px-4 py-12 bg-gray-100 dark:bg-gray-900">
       <div className="max-w-4xl w-full">
         <h1 className="text-4xl font-bold text-[#7ECA9D] mb-8 text-center">
           Terms of Use
         </h1>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8 border border-gray-200 dark:border-gray-700">
           <section className="mb-8">
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               By accessing and using the website www.medh.co ("Website") and the

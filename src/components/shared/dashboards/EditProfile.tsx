@@ -38,6 +38,7 @@ import useGetQuery from "@/hooks/getQuery.hook";
 import usePostQuery from "@/hooks/postQuery.hook";
 import ProfileImgPlaceholder from "@/assets/images/dashbord/profileImg.png";
 import ProfileBanner from "@/assets/images/dashbord/profileBanner.png";
+import { showToast } from '@/utils/toastManager';
 
 // TypeScript Interfaces
 interface ISocialProfile {
@@ -249,33 +250,144 @@ const EditProfile: React.FC<IEditProfileProps> = ({ onBackClick }) => {
   const onSubmit = async (data: IFormData) => {
     setLoading(true);
     try {
-      // Prepare the data for submission
+      // Prepare the data for submission with proper structure for student collection
       const submitData = {
-        ...data,
+        // Basic Information
+        full_name: data.full_name?.trim(),
+        bio: data.bio?.trim() || null,
+        
+        // Personal Details
         date_of_birth: data.date_of_birth ? moment(data.date_of_birth).format("YYYY-MM-DD") : null,
+        gender: data.gender || null,
+        nationality: data.nationality || null,
+        timezone: data.timezone || null,
+        
+        // Phone numbers array format
+        phone_numbers: data.phone_number?.trim() ? [{
+          country: 'IN',
+          number: data.phone_number.trim()
+        }] : [],
+        
+        // Social Media Links
+        facebook_link: data.facebook_link?.trim() || null,
+        instagram_link: data.instagram_link?.trim() || null,
+        linkedin_link: data.linkedin_link?.trim() || null,
+        twitter_link: data.twitter_link?.trim() || null,
+        youtube_link: data.youtube_link?.trim() || null,
+        github_link: data.github_link?.trim() || null,
+        portfolio_link: data.portfolio_link?.trim() || null,
+        
+        // Education in meta object
         meta: {
-          bio: data.bio,
-          education_level: data.education_level,
-          institution_name: data.institution_name,
-          field_of_study: data.field_of_study,
-          graduation_year: data.graduation_year,
+          bio: data.bio?.trim() || null,
+          education_level: data.education_level || null,
+          institution_name: data.institution_name?.trim() || null,
+          field_of_study: data.field_of_study?.trim() || null,
+          graduation_year: data.graduation_year ? parseInt(data.graduation_year.toString()) : null,
         }
       };
 
+      // Remove null/undefined values
+      const cleanedData = Object.fromEntries(
+        Object.entries(submitData).filter(([_, value]) => value !== null && value !== undefined)
+      );
+
+      console.log("🚀 Submitting profile data:", cleanedData);
+
       await postQuery({
         url: `${apiUrls?.user?.update}/${studentId}`,
-        postData: submitData,
+        postData: cleanedData,
         onSuccess: (response) => {
-          console.log("Profile updated successfully:", response);
-          // Show success message or redirect
+          console.log("✅ Profile updated successfully:", response);
+          
+          // Show success toast
+          showToast.dismiss(); // Clear any existing toasts
+          showToast.success('Profile updated successfully! 🎉', {
+            duration: 3000,
+            position: 'top-right'
+          });
+          
+          // Refresh the profile data
+          if (studentId) {
+            getQuery({
+              url: `${apiUrls?.user?.getDetailsbyId}/${studentId}`,
+              onSuccess: (data) => {
+                const profile = data?.data;
+                setProfileData(profile);
+                
+                // Reset form with updated data
+                const formData: Partial<IFormData> = {
+                  full_name: profile.full_name || "",
+                  email: profile.email || "",
+                  phone_number: profile.phone_numbers?.[0]?.number || "",
+                  bio: profile.meta?.bio || profile.bio || "",
+                  date_of_birth: profile.date_of_birth ? new Date(profile.date_of_birth) : null,
+                  gender: profile.gender || "",
+                  nationality: profile.nationality || "",
+                  timezone: profile.timezone || "",
+                  facebook_link: profile.facebook_link || "",
+                  instagram_link: profile.instagram_link || "",
+                  linkedin_link: profile.linkedin_link || "",
+                  twitter_link: profile.twitter_link || "",
+                  youtube_link: profile.youtube_link || "",
+                  github_link: profile.github_link || "",
+                  portfolio_link: profile.portfolio_link || "",
+                  education_level: profile.meta?.education_level || "",
+                  institution_name: profile.meta?.institution_name || "",
+                  field_of_study: profile.meta?.field_of_study || "",
+                  graduation_year: profile.meta?.graduation_year || undefined,
+                };
+                reset(formData);
+              },
+              onFail: (refreshError) => {
+                console.warn("Could not refresh profile data:", refreshError);
+                // Still show success since the update worked
+              }
+            });
+          }
+          
+          // Go back to profile view after 2 seconds
+          setTimeout(() => {
+            onBackClick();
+          }, 2000);
         },
         onFail: (error: any) => {
-          console.error("Error updating profile:", error);
-          // Show error message
+          console.error("❌ Error updating profile:", error);
+          
+          // Show detailed error toast
+          showToast.dismiss();
+          let errorMessage = 'Failed to update profile. Please try again.';
+          
+          if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
+          // Handle validation errors
+          if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+            error.response.data.errors.forEach((err: any) => {
+              showToast.error(`${err.field || 'Field'}: ${err.message}`, {
+                duration: 5000,
+                position: 'top-right'
+              });
+            });
+            return;
+          }
+          
+          showToast.error(errorMessage, {
+            duration: 5000,
+            position: 'top-right'
+          });
         }
       });
     } catch (error) {
-      console.error("Error:", error);
+      console.error("❌ Unexpected error:", error);
+      showToast.dismiss();
+      showToast.error("An unexpected error occurred. Please try again.", {
+        duration: 5000,
+        position: 'top-right'
+      });
     } finally {
       setLoading(false);
     }

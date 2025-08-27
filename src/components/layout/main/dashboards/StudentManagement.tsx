@@ -88,8 +88,12 @@ const StudentManagement: React.FC = () => {
         return;
       }
       
-      // Build query parameters
+            // Build query parameters
       const queryParams = new URLSearchParams();
+      
+      // Set high limit to get all students (no pagination for admin view)
+      queryParams.append('limit', '10000');
+      queryParams.append('page', '1');
 
       // Add cache busting parameter for force reload
       if (forceReload) {
@@ -97,6 +101,7 @@ const StudentManagement: React.FC = () => {
       }
 
       const url = `${apiUrls.Students?.getAllStudents}?${queryParams.toString()}`;
+      console.log('Making API call to:', url);
 
       await getQuery({
         url,
@@ -104,42 +109,62 @@ const StudentManagement: React.FC = () => {
         skipCache: forceReload,
         debug: true,
         onSuccess: (response: any) => {
-          console.log('Students fetched successfully:', response);
+          console.log('Students API Response:', response);
           
           let studentsArray: IStudent[] = [];
+          let totalCount = 0;
           
-          // Handle different response structures
-          if (response?.data) {
-            // Check if it's the paginated structure we expected
-            if (response.data.success && Array.isArray(response.data.data)) {
-              studentsArray = response.data.data;
-            }
-            // Check if it's the actual API structure with students array
-            else if (Array.isArray(response.data.students)) {
-              studentsArray = response.data.students;
+          // Handle the correct API response structure from Student collection
+          if (response?.success && response?.data) {
+            // This is the correct structure from students-controller.js
+            if (response.data.items && Array.isArray(response.data.items)) {
+              studentsArray = response.data.items;
+              totalCount = response.data.total || studentsArray.length;
+              console.log(`✅ Found ${studentsArray.length} students from Student collection`);
             }
             // Fallback for direct data array
             else if (Array.isArray(response.data)) {
               studentsArray = response.data;
+              totalCount = response.count || studentsArray.length;
+              console.log(`✅ Found ${studentsArray.length} students (direct array)`);
             }
-          } 
-          // Handle direct response with students array (current API structure)
-          else if (response?.students && Array.isArray(response.students)) {
-            studentsArray = response.students;
+          }
+          // Handle User collection response (from auth controller)
+          else if (response?.data && Array.isArray(response.data)) {
+            studentsArray = response.data;
+            totalCount = response.count || studentsArray.length;
+            console.log(`✅ Found ${studentsArray.length} students from User collection`);
           }
           // Fallback for direct array response
           else if (Array.isArray(response)) {
             studentsArray = response;
+            totalCount = studentsArray.length;
+            console.log(`✅ Found ${studentsArray.length} students (direct response)`);
           }
           
           if (studentsArray.length > 0) {
-            setAllStudents([...studentsArray]);
-            setTotalStudents(response?.totalStudents || studentsArray.length);
-            console.log(`Loaded ${studentsArray.length} total students`);
+            // Transform data to ensure consistent structure
+            const transformedStudents = studentsArray.map((student: any) => ({
+              _id: student._id,
+              full_name: student.full_name,
+              email: student.email,
+              phone_numbers: student.phone_numbers || student.phone_number || [],
+              role: Array.isArray(student.role) ? student.role : [student.role || 'student'],
+              status: student.status || 'active',
+              course_name: student.course_name || '',
+              age: student.age || null,
+              user_image: student.user_image || null,
+              created_at: student.created_at || student.createdAt,
+              // Add any other fields that might be needed
+            }));
+            
+            setAllStudents(transformedStudents);
+            setTotalStudents(totalCount);
+            console.log(`✅ Successfully loaded ${transformedStudents.length} students`);
           } else {
             setAllStudents([]);
             setTotalStudents(0);
-            console.error("No students found in response:", response);
+            console.warn("⚠️ No students found in response:", response);
           }
         },
         onFail: (error) => {

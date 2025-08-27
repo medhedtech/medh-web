@@ -17,16 +17,16 @@ const CookiePolicyPage = () => {
       <Header styles="header-style-1" />
       
       {/* Simple Breadcrumb */}
-      <div className=" bg-gray-100 dark:bg-gray-800 py-6 pt-20">
+      <div className="bg-gray-100 dark:bg-gray-900 py-6 pt-20">
         <div className="container mx-auto px-4">
             <h1 className="text-4xl font-bold text-[#7ECA9D] text-center">Cookie Policy</h1>
             </div>
       </div>
       
       {/* Main Content */}
-      <div className="flex flex-col items-center px-4 py-8 bg-gray-100 dark:bg-gray-800 " >
+      <div className="flex flex-col items-center px-4 py-12 bg-gray-100 dark:bg-gray-900">
         <div className="max-w-4xl w-full">
-          <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6 sm:p-8 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 sm:p-8 mb-8 border border-gray-200 dark:border-gray-700">
             <section className="mb-8">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 This Cookie Policy explains how MEDH ("we", "us", or "our") uses cookies and similar technologies

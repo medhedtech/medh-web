@@ -10,7 +10,7 @@ export const metadata = {
 const MoneyGuaranteePolicyPage = () => {
   return (
     <PageWrapper>
-      <main className="pt-16">
+      <main>
         <MoneyGuaranteePolicy/>
       </main>
     </PageWrapper>

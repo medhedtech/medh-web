@@ -316,18 +316,7 @@ export default function VideoSessionPage() {
               </h3>
               
               <div className="space-y-4">
-                {/* Student Name */}
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaUser className="text-green-400 w-4 h-4" />
-                    <span className="text-green-400 text-sm font-medium">Student Name</span>
-                  </div>
-                  <p className="text-white font-semibold">
-                    {Array.isArray(session.students) && session.students.length > 0 
-                      ? session.students[0]?.full_name || session.students[0]?.name || 'N/A'
-                      : 'N/A'}
-                  </p>
-                </div>
+
 
                 {/* Grade */}
                 <div className="bg-gray-700 rounded-lg p-4">

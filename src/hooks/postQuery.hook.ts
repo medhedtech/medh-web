@@ -162,6 +162,19 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       const apiData = response.data as T;
       setData(apiData);
 
+      // Enhanced logging for login requests
+      if (isLoginRequest) {
+        console.log('PostQuery - Login response details:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+          dataType: typeof apiData,
+          dataKeys: apiData && typeof apiData === 'object' ? Object.keys(apiData) : 'not an object',
+          dataLength: apiData && typeof apiData === 'object' ? Object.keys(apiData).length : 'N/A',
+          rawData: apiData
+        });
+      }
+
       // Show success toast if configured and not disabled
       if (enableToast && successMessage && !disableToast) {
         showToast.success(successMessage);

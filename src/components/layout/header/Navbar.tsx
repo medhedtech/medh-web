@@ -210,15 +210,18 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
 
   // Determine navbar appearance based on state (enhanced with modern glass morphism)
   const navbarAppearanceClass = (() => {
-    let baseClasses = "fixed w-full transition-all duration-300 ease-in-out z-50";
+    let baseClasses = "fixed w-full transition-all duration-500 ease-out z-50";
     
     if (isSearchActive) {
-      baseClasses += " bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/30 dark:border-gray-800/30";
+      baseClasses += " backdrop-blur-xl bg-white/10 dark:bg-black/10 shadow-2xl dark:shadow-black/40 border-b border-white/30 dark:border-gray-700/30";
     } else if (isScrolled) {
-      baseClasses += " bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg dark:shadow-gray-900/30 border-b border-gray-200/20 dark:border-gray-800/20";
+      baseClasses += " backdrop-blur-xl bg-white/5 dark:bg-black/5 shadow-xl dark:shadow-black/30 border-b border-white/20 dark:border-gray-700/20";
     } else {
-      baseClasses += " bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200/10 dark:border-gray-800/10";
+      baseClasses += " backdrop-blur-lg bg-white/3 dark:bg-black/3 border-b border-white/10 dark:border-gray-700/10";
     }
+    
+    // Add glassmorphism effect
+    baseClasses += " backdrop-saturate-150 backdrop-contrast-125";
     
     // Visibility based on animation (we keep it visible at all times per requirement)
     if (!isVisible) {

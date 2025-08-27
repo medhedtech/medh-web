@@ -1424,11 +1424,37 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         onSuccess: (res: any) => {
           console.log('Login response:', res);
           
+          // Enhanced response validation with detailed logging
+          if (!res) {
+            console.error('Login response is null or undefined:', res);
+            showToast.dismiss(loadingToastId);
+            showToast.error("No response received from server. Please try again.", { duration: 5000 });
+            return;
+          }
+          
+          // Log response structure for debugging
+          console.log('Response structure:', {
+            hasSuccess: 'success' in res,
+            hasData: 'data' in res,
+            hasMessage: 'message' in res,
+            responseKeys: Object.keys(res),
+            responseType: typeof res,
+            isEmptyObject: Object.keys(res).length === 0
+          });
+          
+          // Check if response is an empty object
+          if (typeof res === 'object' && Object.keys(res).length === 0) {
+            console.error('Received empty response object from server');
+            showToast.dismiss(loadingToastId);
+            showToast.error("Server returned empty response. Please check your connection and try again.", { duration: 5000 });
+            return;
+          }
+          
           // Check if MFA is required
           if (authUtils.isMFARequired(res)) {
-                      const mfaResponse = res as IMFALoginRequiredResponse;
-          showToast.dismiss(loadingToastId);
-          showToast.info("Multi-factor authentication required", { duration: 3000 });
+            const mfaResponse = res as IMFALoginRequiredResponse;
+            showToast.dismiss(loadingToastId);
+            showToast.info("Multi-factor authentication required", { duration: 3000 });
             
             setMFAVerificationState({
               isRequired: true,
@@ -1442,13 +1468,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             return;
           }
           
-          // Handle normal login success (existing code)
-          if (!res || !res.data) {
-            console.error('Invalid response structure:', res);
+          // Handle normal login success with better validation
+          if (!res.data) {
+            console.error('Invalid response structure - missing data property:', {
+              response: res,
+              hasSuccess: 'success' in res,
+              successValue: res.success,
+              hasMessage: 'message' in res,
+              messageValue: res.message
+            });
             showToast.dismiss(loadingToastId);
-                        showToast.error("Invalid response from server. Please try again.", { duration: 5000 });
-          return;
-        }
+            
+            // Check if it's a successful response but with different structure
+            if (res.success === true) {
+              showToast.error("Login successful but response format is unexpected. Please contact support.", { duration: 5000 });
+            } else {
+              showToast.error("Invalid response from server. Please try again.", { duration: 5000 });
+            }
+            return;
+          }
         
         // Handle both response structures - nested user object or flat structure
         const isNestedStructure = res.data && 'user' in res.data && res.data.user;

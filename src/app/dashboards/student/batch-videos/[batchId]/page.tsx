@@ -577,17 +577,7 @@ const BatchVideosPage: React.FC = () => {
                           </div>
                         )}
 
-                        {/* File Size */}
-                        {video.fileSize && (
-                          <div className="flex items-center space-x-2 col-span-2">
-                            <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 rounded-lg">
-                              <Video className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <span className="text-gray-600 dark:text-gray-400 text-xs">
-                              {formatFileSize(video.fileSize)}
-                            </span>
-                          </div>
-                        )}
+
 
                         {/* Instructor */}
                         {video.instructor && (
@@ -601,17 +591,7 @@ const BatchVideosPage: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Student Name */}
-                        {video.student_name && (
-                          <div className="flex items-center space-x-2 col-span-2">
-                            <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40 rounded-lg">
-                              <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                            </div>
-                            <span className="text-gray-600 dark:text-gray-400 text-xs">
-                              Student: {video.student_name}
-                            </span>
-                          </div>
-                        )}
+
                       </div>
 
                       {/* Description */}

@@ -47,23 +47,42 @@ const InstructorTable: React.FC = () => {
       setLoading(true);
       console.log('Fetching instructors...', forceReload ? '(Force reload)' : '');
       
-      // Add cache busting parameter for force reload
-      const url = forceReload 
-        ? `${apiUrls.Instructor.getAllInstructors}?_t=${Date.now()}`
-        : apiUrls.Instructor.getAllInstructors;
+      // Build query parameters for high limit and cache busting
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', '10000'); // Get all instructors
+      queryParams.append('page', '1');
+      
+      if (forceReload) {
+        queryParams.append('_t', Date.now().toString());
+      }
+      
+      const url = `${apiUrls.Instructor.getAllInstructors}?${queryParams.toString()}`;
 
       await getQuery({
         url,
         onSuccess: (response: any) => {
           console.log('Instructors fetched successfully:', response);
-          if (Array.isArray(response)) {
-            setInstructors([...response]); // Force new array reference
+          
+          let instructorsArray = [];
+          
+          // Handle different response structures
+          if (response?.status === 'success' && response?.data?.items) {
+            // Live classes API structure
+            instructorsArray = Array.isArray(response.data.items) ? response.data.items : [];
+            console.log(`✅ Found ${instructorsArray.length} instructors from Instructor collection`);
           } else if (response?.data && Array.isArray(response.data)) {
-            setInstructors([...response.data]); // Force new array reference
+            // Direct data array
+            instructorsArray = response.data;
+            console.log(`✅ Found ${instructorsArray.length} instructors (direct array)`);
+          } else if (Array.isArray(response)) {
+            // Direct array response
+            instructorsArray = response;
+            console.log(`✅ Found ${instructorsArray.length} instructors (direct response)`);
           } else {
-            setInstructors([]);
-            console.error("Invalid API response:", response);
+            console.warn("⚠️ No instructors found in response:", response);
           }
+          
+          setInstructors([...instructorsArray]); // Force new array reference
         },
         onFail: (error) => {
           console.error("Failed to fetch instructors:", error);

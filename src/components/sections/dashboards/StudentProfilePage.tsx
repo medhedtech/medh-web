@@ -8,7 +8,7 @@ import {
   Facebook, Instagram, Linkedin, Twitter, Youtube, Github, Lock, EyeOff, ChevronLeft, ChevronRight,
   Menu, X, ChevronDown, AlertTriangle, RefreshCw
 } from 'lucide-react';
-import { getComprehensiveUserProfile, updateCurrentUserComprehensiveProfile } from '@/apis/profile.api';
+import { getComprehensiveUserProfile } from '@/apis/profile.api';
 import { authAPI, IChangePasswordData } from '@/apis/auth.api';
 import { apiClient } from '@/apis/apiClient';
 import { showToast } from '@/utils/toastManager';
@@ -297,14 +297,76 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     }
   };
 
+  // Auto-refresh form when profile updates (after save)
+  useEffect(() => {
+    if (profile && isEditingProfile) {
+      console.log('🔄 Profile updated, refreshing form data automatically...');
+      
+      const autoRefreshEditData = {
+        // Basic Information
+        full_name: profile?.basic_info.full_name || '',
+        phone_number: profile?.basic_info.phone_numbers?.[0]?.number || '',
+        bio: profile?.basic_info.bio || '',
+        age: profile?.basic_info.age?.toString() || '',
+        address: profile?.basic_info.address || '',
+        country: profile?.basic_info.country || '',
+        timezone: profile?.basic_info.timezone || '',
+        
+        // Personal Details
+        date_of_birth: formatDateForInput(profile?.personal_details.date_of_birth),
+        gender: profile?.personal_details.gender || '',
+        nationality: profile?.personal_details.nationality || '',
+        
+        // Education Information - check multiple sources
+        education_level: profile?.personal_details.education_level || profile?.basic_info?.meta?.education_level || '',
+        institution_name: profile?.personal_details.institution_name || profile?.basic_info?.meta?.institution_name || '',
+        field_of_study: profile?.personal_details.field_of_study || profile?.basic_info?.meta?.field_of_study || '',
+        graduation_year: profile?.personal_details.graduation_year || profile?.basic_info?.meta?.graduation_year || '',
+        
+        // Social Media Links
+        facebook_link: profile?.basic_info.facebook_link || '',
+        instagram_link: profile?.basic_info.instagram_link || '',
+        linkedin_link: profile?.basic_info.linkedin_link || '',
+        twitter_link: profile?.basic_info.twitter_link || '',
+        youtube_link: profile?.basic_info.youtube_link || '',
+        github_link: profile?.basic_info.github_link || '',
+        portfolio_link: profile?.basic_info.portfolio_link || '',
+        
+        // Skills & Interests
+        skills: profile?.personal_details.skills?.join(', ') || '',
+        interests: profile?.personal_details.interests?.join(', ') || '',
+        learning_goals: profile?.personal_details.learning_goals?.join(', ') || '',
+        certifications: profile?.personal_details.certifications?.join(', ') || '',
+        preferred_study_times: profile?.personal_details.preferred_study_times?.join(', ') || '',
+        languages_spoken: profile?.personal_details.languages_spoken?.map(l => l.language).join(', ') || '',
+        
+        // Professional Details
+        occupation: profile?.personal_details.occupation || '',
+        industry: profile?.personal_details.industry || '',
+        company: profile?.personal_details.company || '',
+        experience_level: profile?.personal_details.experience_level || '',
+        annual_income_range: profile?.personal_details.annual_income_range || ''
+      };
+      
+      console.log('📝 Auto-updating edit data with latest profile:', autoRefreshEditData);
+      setEditData(autoRefreshEditData);
+    }
+  }, [profile, isEditingProfile]);
+
   // Edit functions
   const handleEditProfile = () => {
+    console.log('🔧 Setting up edit form with current profile data...');
+    console.log('📋 Current profile structure:', {
+      basic_info: profile?.basic_info,
+      personal_details: profile?.personal_details
+    });
+    
     setEditData({
       // Basic Information
       full_name: profile?.basic_info.full_name || '',
       phone_number: profile?.basic_info.phone_numbers?.[0]?.number || '',
       bio: profile?.basic_info.bio || '',
-      age: profile?.basic_info.age || '',
+      age: profile?.basic_info.age?.toString() || '',
       address: profile?.basic_info.address || '',
       country: profile?.basic_info.country || '',
       timezone: profile?.basic_info.timezone || '',
@@ -314,11 +376,11 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       gender: profile?.personal_details.gender || '',
       nationality: profile?.personal_details.nationality || '',
       
-      // Education Information
-      education_level: profile?.personal_details.education_level || '',
-      institution_name: profile?.personal_details.institution_name || '',
-      field_of_study: profile?.personal_details.field_of_study || '',
-      graduation_year: profile?.personal_details.graduation_year || '',
+      // Education Information - check multiple sources
+      education_level: profile?.personal_details.education_level || profile?.basic_info?.meta?.education_level || '',
+      institution_name: profile?.personal_details.institution_name || profile?.basic_info?.meta?.institution_name || '',
+      field_of_study: profile?.personal_details.field_of_study || profile?.basic_info?.meta?.field_of_study || '',
+      graduation_year: profile?.personal_details.graduation_year || profile?.basic_info?.meta?.graduation_year || '',
       
       // Social Media Links
       facebook_link: profile?.basic_info.facebook_link || '',
@@ -347,12 +409,69 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
     });
     
     // Debug: Log the edit data for date of birth and education
+    const finalEditData = {
+      // Basic Information
+      full_name: profile?.basic_info.full_name || '',
+      phone_number: profile?.basic_info.phone_numbers?.[0]?.number || '',
+      bio: profile?.basic_info.bio || '',
+      age: profile?.basic_info.age?.toString() || '',
+      address: profile?.basic_info.address || '',
+      country: profile?.basic_info.country || '',
+      timezone: profile?.basic_info.timezone || '',
+      
+      // Personal Details
+      date_of_birth: formatDateForInput(profile?.personal_details.date_of_birth),
+      gender: profile?.personal_details.gender || '',
+      nationality: profile?.personal_details.nationality || '',
+      
+      // Education Information - check multiple sources
+      education_level: profile?.personal_details.education_level || profile?.basic_info?.meta?.education_level || '',
+      institution_name: profile?.personal_details.institution_name || profile?.basic_info?.meta?.institution_name || '',
+      field_of_study: profile?.personal_details.field_of_study || profile?.basic_info?.meta?.field_of_study || '',
+      graduation_year: profile?.personal_details.graduation_year || profile?.basic_info?.meta?.graduation_year || '',
+      
+      // Social Media Links
+      facebook_link: profile?.basic_info.facebook_link || '',
+      instagram_link: profile?.basic_info.instagram_link || '',
+      linkedin_link: profile?.basic_info.linkedin_link || '',
+      twitter_link: profile?.basic_info.twitter_link || '',
+      youtube_link: profile?.basic_info.youtube_link || '',
+      github_link: profile?.basic_info.github_link || '',
+      portfolio_link: profile?.basic_info.portfolio_link || '',
+      
+      // Skills & Interests
+      skills: profile?.personal_details.skills?.map((skill: any) => 
+        typeof skill === 'string' ? skill : skill.name
+      ) || [],
+      certifications: profile?.personal_details.certifications?.map((cert: any) => 
+        typeof cert === 'string' ? cert : cert.name
+      ) || [],
+      languages_spoken: profile?.personal_details.languages_spoken?.map((lang: any) => 
+        typeof lang === 'string' ? lang : lang.language
+      ) || [],
+      interests: profile?.personal_details.interests || [],
+      learning_goals: profile?.personal_details.learning_goals?.map((goal: any) => 
+        typeof goal === 'string' ? goal : goal.goal
+      ) || [],
+      preferred_study_times: profile?.personal_details.preferred_study_times || []
+    };
+    
     console.log('🔍 Edit Profile Debug:', {
       profileDateOfBirth: profile?.personal_details.date_of_birth,
       formattedDateOfBirth: formatDateForInput(profile?.personal_details.date_of_birth),
-      editDataDateOfBirth: editData.date_of_birth,
+      editDataDateOfBirth: finalEditData.date_of_birth,
       educationLevel: profile?.personal_details.education_level,
-      editDataEducationLevel: editData.education_level
+      editDataEducationLevel: finalEditData.education_level,
+      fullEditData: finalEditData,
+      fullProfileStructure: {
+        basic_info_meta: profile?.basic_info?.meta,
+        personal_details_education: {
+          education_level: profile?.personal_details?.education_level,
+          institution_name: profile?.personal_details?.institution_name,
+          field_of_study: profile?.personal_details?.field_of_study,
+          graduation_year: profile?.personal_details?.graduation_year
+        }
+      }
     });
     
     setIsEditingProfile(true);
@@ -367,70 +486,116 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       fieldOfStudy: editData.field_of_study,
       graduationYear: editData.graduation_year
     });
+    
+    // Check if we have any data to save
+    if (!editData || Object.keys(editData).length === 0) {
+      console.error('❌ No edit data available to save');
+      showToast.error('No data to save. Please fill in some fields first.');
+      return;
+    }
+    
+    console.log('✅ Edit data validation passed, proceeding with save...');
     setSaving(true);
     try {
       // Prepare the data for API call with proper structure
       const updateData: any = {
-        // Basic Information - direct fields
-        full_name: editData.full_name?.trim() || undefined,
-        bio: editData.bio?.trim() || undefined,
-        age: editData.age ? parseInt(editData.age) : undefined,
-        address: editData.address?.trim() || undefined,
-        country: editData.country?.trim() || undefined,
-        timezone: editData.timezone?.trim() || undefined,
+        // Basic Information - direct fields (send even if empty to clear existing data)
+        full_name: editData.full_name?.trim() || '',
+        bio: editData.bio?.trim() || '',
+        age: editData.age ? editData.age.toString().trim() : '',
+        address: editData.address?.trim() || '',
+        country: editData.country?.trim() || '',
+        timezone: editData.timezone?.trim() || '',
         
-        // Phone numbers - ensure proper format
-        phone_numbers: editData.phone_number?.trim() ? [{
-          country: 'IN',
-          number: editData.phone_number.trim()
-        }] : undefined,
+        // Phone numbers - always send, even if empty
+        phone_numbers: editData.phone_number?.trim() ? (() => {
+          const cleanNumber = editData.phone_number.trim().replace(/[^\d+]/g, ''); // Keep digits and + sign
+          console.log('📱 Phone number processing:', {
+            original: editData.phone_number,
+            cleaned: cleanNumber,
+            length: cleanNumber.length
+          });
+          // Ensure number is between 9-15 digits (allowing 9+ digits for flexibility)
+          if (cleanNumber.length >= 9 && cleanNumber.length <= 15) {
+            const phoneArray = [{
+              country: 'IN',
+              number: cleanNumber
+            }];
+            console.log('✅ Valid phone number created:', phoneArray);
+            return phoneArray;
+          }
+          console.log('❌ Invalid phone number length, returning empty array');
+          return []; // Return empty array if invalid
+        })() : [],
         
-        // Social Media Links - handle both filled and empty values properly
-        facebook_link: editData.facebook_link?.trim() || null,
-        instagram_link: editData.instagram_link?.trim() || null,
-        linkedin_link: editData.linkedin_link?.trim() || null,
-        twitter_link: editData.twitter_link?.trim() || null,
-        youtube_link: editData.youtube_link?.trim() || null,
-        github_link: editData.github_link?.trim() || null,
-        portfolio_link: editData.portfolio_link?.trim() || null,
+        // Social Media Links - always send, even if empty
+        facebook_link: editData.facebook_link?.trim() || '',
+        instagram_link: editData.instagram_link?.trim() || '',
+        linkedin_link: editData.linkedin_link?.trim() || '',
+        twitter_link: editData.twitter_link?.trim() || '',
+        youtube_link: editData.youtube_link?.trim() || '',
+        github_link: editData.github_link?.trim() || '',
+        portfolio_link: editData.portfolio_link?.trim() || '',
         
-        // Meta object for personal details
+        // Personal Details - always send, even if empty
+        date_of_birth: editData.date_of_birth || '',
+        gender: editData.gender?.trim() || '',
+        nationality: editData.nationality?.trim() || '',
+        
+        // Array fields - convert from comma-separated strings to arrays
+        skills: (() => {
+          if (Array.isArray(editData.skills)) return editData.skills;
+          if (typeof editData.skills === 'string' && editData.skills.trim()) {
+            return editData.skills.split(',').map(s => s.trim()).filter(s => s);
+          }
+          return [];
+        })(),
+        interests: (() => {
+          if (Array.isArray(editData.interests)) return editData.interests;
+          if (typeof editData.interests === 'string' && editData.interests.trim()) {
+            return editData.interests.split(',').map(s => s.trim()).filter(s => s);
+          }
+          return [];
+        })(),
+        learning_goals: (() => {
+          if (Array.isArray(editData.learning_goals)) return editData.learning_goals;
+          if (typeof editData.learning_goals === 'string' && editData.learning_goals.trim()) {
+            return editData.learning_goals.split(',').map(s => s.trim()).filter(s => s);
+          }
+          return [];
+        })(),
+        certifications: (() => {
+          if (Array.isArray(editData.certifications)) return editData.certifications;
+          if (typeof editData.certifications === 'string' && editData.certifications.trim()) {
+            return editData.certifications.split(',').map(s => s.trim()).filter(s => s);
+          }
+          return [];
+        })(),
+        preferred_study_times: (() => {
+          if (Array.isArray(editData.preferred_study_times)) return editData.preferred_study_times;
+          if (typeof editData.preferred_study_times === 'string' && editData.preferred_study_times.trim()) {
+            return editData.preferred_study_times.split(',').map(s => s.trim()).filter(s => s);
+          }
+          return [];
+        })(),
+        languages_spoken: (() => {
+          if (Array.isArray(editData.languages_spoken)) return editData.languages_spoken;
+          if (typeof editData.languages_spoken === 'string' && editData.languages_spoken.trim()) {
+            return editData.languages_spoken.split(',').map(s => s.trim()).filter(s => s);
+          }
+          return [];
+        })(),
+        
+        // Meta object for education and other details
         meta: {
-          // Only include fields that have values
-          ...(editData.date_of_birth && { date_of_birth: editData.date_of_birth }),
-          ...(editData.gender?.trim() && { gender: editData.gender.trim() }),
-          ...(editData.nationality?.trim() && { nationality: editData.nationality.trim() }),
+          // Education Information - always send, even if empty
+          education_level: editData.education_level?.trim() || '',
+          institution_name: editData.institution_name?.trim() || '',
+          field_of_study: editData.field_of_study?.trim() || '',
+          graduation_year: editData.graduation_year && parseInt(editData.graduation_year) >= 1950 && parseInt(editData.graduation_year) <= new Date().getFullYear() + 10 ? 
+            parseInt(editData.graduation_year) : null,
           
-          // Education Information - Always include these fields
-          education_level: editData.education_level || '',
-          institution_name: editData.institution_name || '',
-          field_of_study: editData.field_of_study || '',
-          graduation_year: editData.graduation_year ? parseInt(editData.graduation_year) : null,
-          
-          // Arrays - only include if not empty
-          ...(editData.skills?.length > 0 && { skills: editData.skills }),
-          ...(editData.certifications?.length > 0 && { 
-            certifications: editData.certifications.map((cert: string) => ({
-              name: cert.trim(),
-              issuer: 'Unknown',
-              year: new Date().getFullYear(),
-              is_verified: false
-            }))
-          }),
-          ...(editData.languages_spoken?.length > 0 && {
-            languages_spoken: editData.languages_spoken.map((lang: string) => ({
-              language: lang.trim(),
-              proficiency: 'fluent'
-            }))
-          }),
-          ...(editData.interests?.length > 0 && { interests: editData.interests }),
-          ...(editData.learning_goals?.length > 0 && {
-            learning_goals: editData.learning_goals.map((goal: string) => ({
-              goal: goal.trim(),
-              priority: 'medium',
-              progress: 0
-            }))
-          }),
+          // Note: Arrays are handled separately outside meta object
           ...(editData.preferred_study_times?.length > 0 && {
             preferred_study_times: editData.preferred_study_times.map((time: string) => ({
               day: 'monday',
@@ -441,15 +606,24 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         }
       };
 
-      // Remove undefined values and empty meta object, but preserve null values for social media links
+      // Remove undefined values and empty meta object, but preserve empty strings for important fields
+      const alwaysKeepFields = [
+        'full_name', 'bio', 'age', 'address', 'country', 'timezone',
+        'date_of_birth', 'gender', 'nationality', 'phone_numbers',
+        'skills', 'interests', 'learning_goals', 'certifications', 
+        'preferred_study_times', 'languages_spoken'
+      ];
+      
       Object.keys(updateData).forEach(key => {
         const value = updateData[key];
         const isSocialMediaLink = [
           'facebook_link', 'instagram_link', 'linkedin_link', 
           'twitter_link', 'youtube_link', 'github_link', 'portfolio_link'
         ].includes(key);
+        const isAlwaysKeepField = alwaysKeepFields.includes(key);
         
-        if (value === undefined || value === '' || (!isSocialMediaLink && value === null)) {
+        // Only delete if undefined, but keep empty strings for important fields
+        if (value === undefined || (!isAlwaysKeepField && !isSocialMediaLink && value === '')) {
           delete updateData[key];
         }
       });
@@ -459,7 +633,122 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         delete updateData.meta;
       }
 
-      console.log('💾 Saving profile with data:', updateData);
+      // Add all form fields to ensure they're sent to backend
+      updateData.occupation = editData.occupation?.trim() || '';
+      updateData.industry = editData.industry?.trim() || '';
+      updateData.company = editData.company?.trim() || '';
+      updateData.experience_level = editData.experience_level?.trim() || '';
+      updateData.annual_income_range = editData.annual_income_range?.trim() || '';
+      
+      // Convert comma-separated strings to arrays for skills/interests
+      if (editData.skills) {
+        if (typeof editData.skills === 'string' && editData.skills.trim()) {
+          updateData.skills = editData.skills.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+        } else if (Array.isArray(editData.skills) && editData.skills.length > 0) {
+          updateData.skills = editData.skills.filter(skill => skill && skill.toString().trim().length > 0);
+        }
+      }
+      if (editData.interests) {
+        if (typeof editData.interests === 'string' && editData.interests.trim()) {
+          updateData.interests = editData.interests.split(',').map(interest => interest.trim()).filter(interest => interest.length > 0);
+        } else if (Array.isArray(editData.interests) && editData.interests.length > 0) {
+          updateData.interests = editData.interests.filter(interest => interest && interest.toString().trim().length > 0);
+        }
+      }
+      if (editData.learning_goals) {
+        if (typeof editData.learning_goals === 'string' && editData.learning_goals.trim()) {
+          updateData.learning_goals = editData.learning_goals.split(',').map(goal => goal.trim()).filter(goal => goal.length > 0);
+        } else if (Array.isArray(editData.learning_goals) && editData.learning_goals.length > 0) {
+          updateData.learning_goals = editData.learning_goals.filter(goal => goal && goal.toString().trim().length > 0);
+        }
+      }
+      if (editData.certifications) {
+        if (typeof editData.certifications === 'string' && editData.certifications.trim()) {
+          updateData.certifications = editData.certifications.split(',').map(cert => cert.trim()).filter(cert => cert.length > 0);
+        } else if (Array.isArray(editData.certifications) && editData.certifications.length > 0) {
+          updateData.certifications = editData.certifications.filter(cert => cert && cert.toString().trim().length > 0);
+        }
+      }
+      if (editData.preferred_study_times) {
+        if (typeof editData.preferred_study_times === 'string' && editData.preferred_study_times.trim()) {
+          updateData.preferred_study_times = editData.preferred_study_times.split(',').map(time => time.trim()).filter(time => time.length > 0);
+        } else if (Array.isArray(editData.preferred_study_times) && editData.preferred_study_times.length > 0) {
+          updateData.preferred_study_times = editData.preferred_study_times.filter(time => time && time.toString().trim().length > 0);
+        }
+      }
+      if (editData.languages_spoken) {
+        if (typeof editData.languages_spoken === 'string' && editData.languages_spoken.trim()) {
+          updateData.languages_spoken = editData.languages_spoken.split(',').map(lang => ({ language: lang.trim() })).filter(lang => lang.language.length > 0);
+        } else if (Array.isArray(editData.languages_spoken) && editData.languages_spoken.length > 0) {
+          updateData.languages_spoken = editData.languages_spoken.filter(lang => lang && lang.toString().trim().length > 0);
+        }
+      }
+
+      // Remove empty strings and null values to avoid backend validation errors
+      // But keep certain fields even if empty (to clear existing data)
+      const alwaysIncludeFields = ['full_name', 'bio', 'age', 'address', 'country', 'timezone', 'date_of_birth', 'gender', 'nationality'];
+      const cleanUpdateData: any = {};
+      Object.keys(updateData).forEach(key => {
+        const value = updateData[key];
+        
+        // Always include certain fields even if empty
+        if (alwaysIncludeFields.includes(key)) {
+          cleanUpdateData[key] = value || '';
+        } else if (value !== '' && value !== null && value !== undefined || Array.isArray(value)) {
+          if (Array.isArray(value)) {
+            // Always include certain arrays even if empty, and include non-empty arrays
+            const alwaysIncludeArrays = ['phone_numbers', 'skills', 'interests', 'learning_goals', 'certifications', 'preferred_study_times', 'languages_spoken'];
+            if (alwaysIncludeArrays.includes(key)) {
+              cleanUpdateData[key] = value; // Always include these arrays, even if empty
+            } else if (value.length > 0) {
+              cleanUpdateData[key] = value; // Include other arrays only if they have content
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            // Handle meta object - only include non-empty fields
+            const cleanMeta = {};
+            Object.keys(value).forEach(metaKey => {
+              const metaValue = value[metaKey];
+              if (metaValue !== '' && metaValue !== null && metaValue !== undefined) {
+                cleanMeta[metaKey] = metaValue;
+              }
+            });
+            if (Object.keys(cleanMeta).length > 0) {
+              cleanUpdateData[key] = cleanMeta;
+            }
+          } else if (typeof value === 'string' && value.trim() !== '') {
+            cleanUpdateData[key] = value;
+          } else if (typeof value === 'number') {
+            cleanUpdateData[key] = value;
+          }
+        }
+      });
+
+      console.log('🌍 Country and Phone Debug:', {
+        country: editData.country,
+        phone_number: editData.phone_number,
+        updateData_country: updateData.country,
+        updateData_phone_numbers: updateData.phone_numbers
+      });
+      
+      console.log('📋 Missing Fields Debug:', {
+        editData_dob: editData.date_of_birth,
+        editData_gender: editData.gender,
+        editData_nationality: editData.nationality,
+        editData_skills: editData.skills,
+        editData_interests: editData.interests,
+        updateData_dob: updateData.date_of_birth,
+        updateData_gender: updateData.gender,
+        updateData_nationality: updateData.nationality,
+        updateData_skills: updateData.skills,
+        updateData_interests: updateData.interests
+      });
+      
+      console.log('💾 Saving profile with data:', cleanUpdateData);
+      console.log('🧹 Cleaned data (removed empty fields):', {
+        originalFields: Object.keys(updateData).length,
+        cleanedFields: Object.keys(cleanUpdateData).length,
+        removedFields: Object.keys(updateData).filter(key => !(key in cleanUpdateData))
+      });
       console.log('🔗 API URL will be:', '/profile/me/comprehensive');
       
       // Debug: Log what fields are being sent
@@ -507,11 +796,51 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
         }
       });
       
-      // Make the API call
-      const response = await updateCurrentUserComprehensiveProfile(updateData);
-      console.log('✅ Profile update response:', response);
+      // Make the API call using the correct endpoint
+      console.log('🚀 Making API call to update profile...');
+      console.log('📤 ORIGINAL Update data:', updateData);
+      console.log('📤 CLEANED Update data being sent:', cleanUpdateData);
+      console.log('🔑 Auth token check:', localStorage.getItem('token') ? 'Token exists' : 'No token found');
       
-      if (response && response.data) {
+      // CRITICAL DEBUG: Log the exact data being sent
+      console.log('🔥 CRITICAL DEBUG - Data being sent to API:', {
+        url: '/auth/profile',
+        method: 'PUT',
+        data: cleanUpdateData,
+        dataKeys: Object.keys(cleanUpdateData),
+        hasDateOfBirth: 'date_of_birth' in cleanUpdateData,
+        hasGender: 'gender' in cleanUpdateData,
+        hasSkills: 'skills' in cleanUpdateData,
+        dateOfBirthValue: cleanUpdateData.date_of_birth,
+        genderValue: cleanUpdateData.gender,
+        skillsValue: cleanUpdateData.skills
+      });
+      
+      // Log individual fields for validation debugging
+      console.log('🔍 Field validation check (CLEANED DATA):', {
+        full_name: cleanUpdateData.full_name ? `"${cleanUpdateData.full_name}" (${cleanUpdateData.full_name.length} chars)` : 'Empty',
+        age: cleanUpdateData.age ? `${cleanUpdateData.age} (type: ${typeof cleanUpdateData.age})` : 'Empty',
+        phone_numbers: cleanUpdateData.phone_numbers ? `${cleanUpdateData.phone_numbers.length} numbers` : 'Empty',
+        meta: cleanUpdateData.meta ? Object.keys(cleanUpdateData.meta) : 'Empty',
+        bio: cleanUpdateData.bio ? `"${cleanUpdateData.bio}" (${cleanUpdateData.bio.length} chars)` : 'Empty',
+        date_of_birth: cleanUpdateData.date_of_birth ? `"${cleanUpdateData.date_of_birth}"` : 'Empty',
+        gender: cleanUpdateData.gender ? `"${cleanUpdateData.gender}"` : 'Empty',
+        nationality: cleanUpdateData.nationality ? `"${cleanUpdateData.nationality}"` : 'Empty',
+        skills: cleanUpdateData.skills ? `${cleanUpdateData.skills.length} skills: ${JSON.stringify(cleanUpdateData.skills)}` : 'Empty',
+        interests: cleanUpdateData.interests ? `${cleanUpdateData.interests.length} interests: ${JSON.stringify(cleanUpdateData.interests)}` : 'Empty',
+        learning_goals: cleanUpdateData.learning_goals ? `${cleanUpdateData.learning_goals.length} goals: ${JSON.stringify(cleanUpdateData.learning_goals)}` : 'Empty',
+        address: updateData.address ? `"${updateData.address}"` : 'Empty',
+        country: updateData.country ? `"${updateData.country}"` : 'Empty'
+      });
+      
+      console.log('📋 Note: Backend automatically updates Students collection for student users');
+      
+      // Use the auth API endpoint that actually works
+      const response = await apiClient.put('/auth/profile', cleanUpdateData);
+      console.log('✅ Profile update response:', response);
+      console.log('📊 Response data:', response?.data);
+      
+      if (response && response.status === 'success' && response.data) {
         showToast.dismiss(); // Dismiss any existing toasts
         showToast.success('Profile updated successfully!');
         
@@ -522,22 +851,74 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
           response: response.data
         });
         
-        // Auto-refresh the profile data
+        // Auto-refresh the profile data to show updated information
+        console.log('🔄 Refreshing profile data after successful update...');
         await fetchProfile();
         
-        // Close the edit modal
-        handleCancel();
+        // Show success message - form will auto-refresh via useEffect
+        showToast.success('Profile updated successfully! Form will refresh with latest data.');
+      } else if (response && response.status === 'error') {
+        // Handle API validation errors
+        console.log('🚨 API Validation Error:', response);
+        
+        if (response.data && response.data.errors && Array.isArray(response.data.errors)) {
+          console.log('🔍 Detailed validation errors:', response.data.errors);
+          
+          // Log each validation error in detail
+          response.data.errors.forEach((err: any, index: number) => {
+            console.error(`❌ Error ${index + 1}:`, {
+              field: err.path || err.field || err.param || 'unknown',
+              message: err.message || err.msg || err,
+              value: err.value,
+              type: err.type || err.kind,
+              fullError: err
+            });
+          });
+          
+          showToast.dismiss();
+          response.data.errors.forEach((err: any) => {
+            const field = err.path || err.field || err.param || 'Field';
+            const message = err.message || err.msg || err;
+            showToast.error(`${field}: ${message}`, {
+              duration: 5000,
+              position: 'top-right'
+            });
+          });
+          return;
+        } else {
+          throw new Error(response.message || response.error || 'Validation failed');
+        }
       } else {
         throw new Error('Failed to update profile - no response data');
       }
       
     } catch (error: any) {
       console.error('❌ Error saving profile:', error);
+      console.error('❌ Error details:', {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        message: error?.message,
+        config: error?.config
+      });
       
       // Show specific error message
       let errorMessage = 'Failed to update profile. Please try again.';
       
-      if (error?.response?.data?.message) {
+      // Handle different types of errors
+      if (error?.response?.status === 401) {
+        errorMessage = 'Authentication failed. Please login again.';
+        // Redirect to login after showing error
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'You do not have permission to update this profile.';
+      } else if (error?.response?.status === 404) {
+        errorMessage = 'Profile not found. Please refresh and try again.';
+      } else if (error?.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
@@ -556,6 +937,51 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       showToast.error(errorMessage);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // TEST FUNCTION - Remove after debugging
+  const testSaveWithHardcodedData = async () => {
+    console.log('🧪🧪🧪 TESTING SAVE WITH HARDCODED DATA 🧪🧪🧪');
+    console.log('🔥 This is the TEST SAVE function - bypassing all form logic');
+    
+    const testData = {
+      full_name: 'Test Student',
+      date_of_birth: '1995-01-15',
+      gender: 'male',
+      nationality: 'Indian',
+      skills: ['JavaScript', 'React'],
+      interests: ['Web Development'],
+      learning_goals: ['Master MERN'],
+      bio: 'Test bio',
+      age: '25',
+      address: 'Test address',
+      country: 'India'
+    };
+    
+    console.log('🔥 Hardcoded test data being sent:', testData);
+    console.log('🌐 API URL: /auth/profile');
+    console.log('📡 Method: PUT');
+    console.log('🔍 Test Data Analysis:', {
+      hasDateOfBirth: 'date_of_birth' in testData,
+      hasGender: 'gender' in testData,
+      hasSkills: 'skills' in testData,
+      dateOfBirthValue: testData.date_of_birth,
+      genderValue: testData.gender,
+      skillsValue: testData.skills,
+      skillsType: typeof testData.skills,
+      totalFields: Object.keys(testData).length,
+      allFields: Object.keys(testData)
+    });
+    
+    try {
+      console.log('🚀 About to call apiClient.put with data:', JSON.stringify(testData, null, 2));
+      const response = await apiClient.put('/auth/profile', testData);
+      console.log('✅ Test save successful:', response);
+      showToast.success('Test save successful!');
+    } catch (error) {
+      console.error('❌ Test save failed:', error);
+      showToast.error('Test save failed!');
     }
   };
 
@@ -621,6 +1047,8 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
       
       const serverResponse = response.data as any;
       console.log('🔍 Server Response:', serverResponse);
+      console.log('🔍 Basic Info from Server:', serverResponse.data?.basic_info);
+      console.log('🔍 Personal Details from Server:', serverResponse.data?.personal_details);
       
       if (serverResponse && serverResponse.success && serverResponse.data) {
         const apiData = serverResponse.data as any;
@@ -1313,6 +1741,15 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   title="Edit Profile"
                 >
                   <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </button>
+                
+                {/* TEST BUTTON - Always visible */}
+                <button 
+                  onClick={testSaveWithHardcodedData}
+                  className="mobile-touch-feedback mobile-tap-target p-1.5 sm:p-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center ml-2"
+                  title="Test Save API"
+                >
+                  🧪
                 </button>
                 
                 {/* Mobile menu toggle - only visible on very small screens */}
@@ -3499,11 +3936,24 @@ const StudentProfilePage: React.FC<StudentProfilePageProps> = ({ studentId }) =>
                   Cancel
                 </button>
                 <button
-                  onClick={handleSave}
+                  onClick={() => {
+                    console.log('🖱️ Save button clicked!');
+                    console.log('📊 Current saving state:', saving);
+                    console.log('📋 Current editData state:', editData);
+                    handleSave();
+                  }}
                   disabled={saving}
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save'}
+                </button>
+                
+                {/* TEST BUTTON - Remove after debugging */}
+                <button
+                  onClick={testSaveWithHardcodedData}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 ml-2"
+                >
+                  🧪 Test Save
                 </button>
               </div>
             </div>

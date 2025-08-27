@@ -10,7 +10,7 @@ export const metadata = {
 const DataSubjectRightsPage = () => {
   return (
     <PageWrapper>
-      <main className="pt-16">
+      <main>
         <DataSubjectRightsPolicy />
       </main>
     </PageWrapper>

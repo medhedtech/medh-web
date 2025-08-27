@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Briefcase, GraduationCap, Award, Users, Clock, Target, ChevronRight, Shield, BookOpen, Star } from "lucide-react";
 import stemImg from "@/assets/images/herobanner/Background.png";
@@ -168,50 +169,98 @@ const PlacementGauranteedBanner: React.FC = () => {
               </div>
             </div>
 
-            {/* Why Choose Medh Job Assurance Programs? */}
+            {/* MEDH's Triple Advantage */}
             <div className="mt-0 text-center pb-8">
               <div className="rounded-2xl p-6 md:p-8 max-w-5xl lg:max-w-6xl mx-auto">
-                <h3 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>Why Choose Medh Job Assurance Programs?</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                  {/* Card 1 */}
+                {/* Header with icon */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full shadow-md">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                      <path d="M19 15L19.74 17.74L22.5 18.5L19.74 19.26L19 22L18.26 19.26L15.5 18.5L18.26 17.74L19 15Z"/>
+                      <path d="M5 6L5.74 8.74L8.5 9.5L5.74 10.26L5 13L4.26 10.26L1.5 9.5L4.26 8.74L5 6Z"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                <h3 className={`text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-center bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent`}>
+                  MEDH's Triple Advantage
+                </h3>
+                
+                {/* Three advantages */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+                  {/* Expert Training */}
                   <div
                     className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center border border-white/10 backdrop-blur-xl shadow-md"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
                   >
                     <div className="relative z-10">
-                      <div className="bg-gradient-to-br from-blue-500 to-purple-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
-                        <Briefcase className="w-5 h-5 md:w-6 md:h-6" />
+                      <div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+                          <path d="M2 17L12 22L22 17"/>
+                          <path d="M2 12L12 17L22 12"/>
+                        </svg>
                       </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>100% Job Guarantee</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>We guarantee job placement or provide a full refund</p>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>Expert Training</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>Industry-leading curriculum <br />  with hands-on projects</p>
                     </div>
                   </div>
-                  {/* Card 2 */}
+                  
+                  {/* Real-World Internship */}
                   <div
                     className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center border border-white/10 backdrop-blur-xl shadow-md"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
                   >
                     <div className="relative z-10">
-                      <div className="bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
-                        <Users className="w-5 h-5 md:w-6 md:h-6" />
+                      <div className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20 7L10 17L5 12L6.41 10.59L10 14.17L18.59 5.58L20 7Z"/>
+                        </svg>
                       </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>Industry Experts</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>Learn from professionals with 10+ years of experience</p>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>Industry Internship</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>3-month mandatory internship <br /> with industry partners</p>
                     </div>
                   </div>
-                  {/* Card 3 */}
+                  
+                  {/* Job Guarantee */}
                   <div
                     className="relative overflow-hidden rounded-xl p-4 md:p-6 group transition-all duration-300 text-center border border-white/10 backdrop-blur-xl shadow-md"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
                   >
                     <div className="relative z-10">
                       <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-xl p-3 w-fit mb-4 mx-auto group-hover:scale-110 transition-transform">
-                        <Target className="w-5 h-5 md:w-6 md:h-6" />
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22 22 17.52 22 12 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20Z"/>
+                          <path d="M12 6C8.69 6 6 8.69 6 12S8.69 18 12 18 18 15.31 18 12 15.31 6 12 6ZM12 16C9.79 16 8 14.21 8 12S9.79 8 12 8 16 9.79 16 12 14.21 16 12 16Z"/>
+                        </svg>
                       </div>
-                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>Corporate Internship</h4>
-                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>3 months of hands-on experience with our partner companies</p>
+                      <h4 className={`text-base md:text-lg font-bold mb-2 transition-colors ${isDark ? 'text-white group-hover:text-primary-200' : 'text-gray-900 group-hover:text-primary-600'}`}>Job Guarantee</h4>
+                      <p className={`text-sm md:text-base transition-colors ${isDark ? 'text-white group-hover:text-primary-100' : 'text-gray-700 group-hover:text-primary-700'}`}>100% placement guarantee <br /> or money back</p>
                     </div>
                   </div>
+                </div>
+                
+                {/* Main tagline */}
+                <div className="space-y-3 mb-4">
+                  {/* <p className={`text-base md:text-lg lg:text-xl font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    Expert Training, Real-World Internship, and Job Guarantee
+                  </p> */}
+                  <Link href="/money-guarantee-policy/" className="inline-flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-md hover:from-red-600 hover:to-pink-600 transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <span className="text-sm md:text-base font-bold">or Get Your Money Back</span>
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                    </svg>
+                  </Link>
+                </div>
+                
+                {/* Quote section */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10 dark:from-blue-500/20 dark:via-indigo-500/20 dark:to-purple-500/20 backdrop-blur-sm rounded-lg border border-blue-200/40 dark:border-blue-600/40 shadow-md">
+                  
+                  <p className={`text-sm md:text-base italic font-medium text-center leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    "Our commitment to your success is backed by our Money Guarantee – <br />
+                    we invest in you because we believe in you."
+                  </p>
                 </div>
               </div>
             </div>

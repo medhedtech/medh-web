@@ -73,49 +73,322 @@ const VideoPlayerPage: React.FC = () => {
   const router = useRouter();
   const videoId = params?.videoId as string;
 
-  // Security: Prevent screenshots and screen recording
+  // MAXIMUM SECURITY: Prevent ALL forms of content theft + Link Sharing Protection
   useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    // PREVENT MULTIPLE TABS & LINK SHARING
+    const sessionKey = `video_session_${videoId}`;
+    const currentTime = Date.now();
+    
+    // Check if video is already open in another tab
+    const existingSession = localStorage.getItem(sessionKey);
+    if (existingSession) {
+      const sessionData = JSON.parse(existingSession);
+      if (currentTime - sessionData.timestamp < 5000) { // 5 seconds tolerance
+        alert('This video is already open in another tab. Please close other tabs first.');
+        window.close();
+        return;
+      }
+    }
+    
+    // Set current session
+    localStorage.setItem(sessionKey, JSON.stringify({
+      timestamp: currentTime,
+      tabId: Math.random().toString(36).substr(2, 9)
+    }));
+    
+    // Clear session on page unload
+    const handleBeforeUnload = () => {
+      localStorage.removeItem(sessionKey);
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Check for direct URL access (prevent link sharing)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasValidData = urlParams.get('data') || localStorage.getItem(`video_${videoId}`);
+    
+    if (!hasValidData) {
+      alert('Invalid access. Please access video through proper navigation.');
+      window.location.href = '/dashboards/student';
+      return;
+    }
+    
+    // Prevent URL copying
+    const originalURL = window.location.href;
+    const cleanURL = window.location.origin + window.location.pathname;
+    
+    // Replace URL without data parameters
+    if (window.location.search) {
+      window.history.replaceState({}, document.title, cleanURL);
+    }
+    
+    // Monitor for URL changes
+    const handlePopState = () => {
+      if (window.location.href !== cleanURL) {
+        window.location.href = '/dashboards/student';
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    // Disable right-click context menu
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    // Block ALL developer tools and screenshot shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Block PrintScreen, F-keys, and all developer shortcuts
       if (
         e.key === 'PrintScreen' ||
+        e.code === 'PrintScreen' ||
+        e.keyCode === 44 || // PrintScreen keycode
+        e.which === 44 ||   // PrintScreen which
         e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-        (e.ctrlKey && e.key === 'u') ||
-        (e.ctrlKey && e.key === 's') ||
-        (e.metaKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
+        e.key === 'F1' ||
+        e.key === 'F2' ||
+        e.key === 'F3' ||
+        e.key === 'F4' ||
+        e.key === 'F5' ||
+        e.key === 'F6' ||
+        e.key === 'F7' ||
+        e.key === 'F8' ||
+        e.key === 'F9' ||
+        e.key === 'F10' ||
+        e.key === 'F11' ||
+        // Developer tools combinations
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
+        (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+        (e.ctrlKey && (e.key === 's' || e.key === 'S')) ||
+        (e.ctrlKey && (e.key === 'a' || e.key === 'A')) ||
+        (e.ctrlKey && (e.key === 'p' || e.key === 'P')) ||
+        (e.ctrlKey && (e.key === 'h' || e.key === 'H')) ||
+        // Mac shortcuts
+        (e.metaKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
+        (e.metaKey && (e.key === 'u' || e.key === 'U')) ||
+        (e.metaKey && (e.key === 's' || e.key === 'S')) ||
+        (e.metaKey && (e.key === 'a' || e.key === 'A')) ||
+        (e.metaKey && (e.key === 'p' || e.key === 'P')) ||
+        // Windows screenshot shortcuts
+        (e.altKey && e.key === 'PrintScreen') ||
+        (e.ctrlKey && e.key === 'PrintScreen') ||
+        (e.shiftKey && e.key === 'PrintScreen') ||
+        // Windows + Shift + S (Snipping Tool)
+        (e.metaKey && e.shiftKey && e.key === 'S') ||
+        // Alt + Tab (prevent task switching during video)
+        (e.altKey && e.key === 'Tab')
       ) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Show warning for screenshot attempts
+        if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+          alert('Screenshots are not allowed for security reasons.');
+        }
+        
         return false;
       }
     };
 
+    // Pause video when tab becomes hidden (prevents background recording)
     const handleVisibilityChange = () => {
-      if (document.hidden) {
+      if (document.hidden || document.visibilityState === 'hidden') {
         if (videoRef.current && !videoRef.current.paused) {
           videoRef.current.pause();
         }
       }
     };
 
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
+    // Detect focus loss (user switched to another app)
+    const handleBlur = () => {
+      if (videoRef.current && !videoRef.current.paused) {
+        videoRef.current.pause();
+      }
+    };
+
+    // Prevent drag and drop
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Prevent selection
+    const handleSelectStart = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Mobile touch events prevention
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault(); // Prevent multi-touch gestures
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault(); // Prevent pinch zoom
+      }
+    };
+
+    // Additional screenshot prevention
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    };
+
+    // Prevent clipboard access
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    const handleCut = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    // Add all event listeners
+    document.addEventListener('contextmenu', handleContextMenu, { passive: false });
+    document.addEventListener('keydown', handleKeyDown, { passive: false });
+    document.addEventListener('keyup', handleKeyUp, { passive: false });
+    document.addEventListener('copy', handleCopy, { passive: false });
+    document.addEventListener('cut', handleCut, { passive: false });
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('dragstart', handleDragStart, { passive: false });
+    document.addEventListener('selectstart', handleSelectStart, { passive: false });
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     
+    // Apply CSS security styles
     document.body.style.userSelect = 'none';
-    (document.body.style as any).webkitUserSelect = 'none';
-    (document.body.style as any).webkitTouchCallout = 'none';
-    (document.body.style as any).webkitUserDrag = 'none';
+    document.body.style.webkitUserSelect = 'none';
+    document.body.style.mozUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+    document.body.style.webkitTouchCallout = 'none';
+    document.body.style.webkitUserDrag = 'none';
+    document.body.style.webkitTapHighlightColor = 'transparent';
+    document.body.style.pointerEvents = 'auto';
     
+    // Disable text selection globally
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      
+      /* Disable image dragging */
+      img {
+        -webkit-user-drag: none !important;
+        -khtml-user-drag: none !important;
+        -moz-user-drag: none !important;
+        -o-user-drag: none !important;
+        user-drag: none !important;
+        pointer-events: none !important;
+      }
+      
+      /* Disable video controls manipulation */
+      video::-webkit-media-controls {
+        display: none !important;
+      }
+      
+      video::-webkit-media-controls-enclosure {
+        display: none !important;
+      }
+      
+      /* Mobile specific restrictions */
+      @media (max-width: 768px) {
+        * {
+          -webkit-touch-callout: none !important;
+          -webkit-user-select: none !important;
+          -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Override console methods to prevent debugging
+    const originalConsole = { ...console };
+    console.log = () => {};
+    console.warn = () => {};
+    console.error = () => {};
+    console.info = () => {};
+    console.debug = () => {};
+    console.trace = () => {};
+    console.table = () => {};
+    console.group = () => {};
+    console.groupEnd = () => {};
+    console.clear = () => {};
+
+    // Monitor for screen recording attempts (passive detection)
+    let isRecording = false;
+    
+    // Only check when user actually tries to start recording
+    const monitorScreenShare = () => {
+      // Check if screen sharing API is being accessed
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
+        navigator.mediaDevices.getDisplayMedia = function(...args) {
+          if (videoRef.current && !videoRef.current.paused) {
+            videoRef.current.pause();
+            alert('Screen recording detected. Video paused for security.');
+          }
+          return originalGetDisplayMedia.apply(this, args);
+        };
+      }
+    };
+
+    monitorScreenShare();
+
+    // Cleanup function
     return () => {
+      // Remove session tracking
+      localStorage.removeItem(sessionKey);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+      
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('cut', handleCut);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener('selectstart', handleSelectStart);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      
+      // Restore original styles
       document.body.style.userSelect = '';
-      (document.body.style as any).webkitUserSelect = '';
-      (document.body.style as any).webkitTouchCallout = '';
-      (document.body.style as any).webkitUserDrag = '';
+      document.body.style.webkitUserSelect = '';
+      document.body.style.mozUserSelect = '';
+      document.body.style.msUserSelect = '';
+      document.body.style.webkitTouchCallout = '';
+      document.body.style.webkitUserDrag = '';
+      document.body.style.webkitTapHighlightColor = '';
+      document.body.style.pointerEvents = '';
+      
+      // Remove security styles
+      if (style.parentNode) {
+        style.parentNode.removeChild(style);
+      }
+      
+      // Restore console
+      Object.assign(console, originalConsole);
     };
   }, []);
   
@@ -462,33 +735,9 @@ const VideoPlayerPage: React.FC = () => {
                   </div>
                 </div>
 
-                {videoData.fileSize && (
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                      <Video className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">File Size</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatFileSize(videoData.fileSize)}
-                      </p>
-                    </div>
-                  </div>
-                )}
 
-                {videoData.student_name && (
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                      <User className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Student</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {videoData.student_name}
-                      </p>
-                    </div>
-                  </div>
-                )}
+
+
 
                 {(liveSessionData?.instructorId || videoData.instructor) && (
                   <div className="flex items-center space-x-3">

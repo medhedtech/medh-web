@@ -729,20 +729,7 @@ const VideoPlayerPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Student */}
-                {videoData.student_name && (
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-lg">
-                      <User className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Student</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {videoData.student_name}
-                      </p>
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Duration */}
                 <div className="flex items-center space-x-3">
@@ -757,20 +744,7 @@ const VideoPlayerPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* File Size */}
-                {videoData.fileSize && (
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-lg">
-                      <Video className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">File Size</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatFileSize(videoData.fileSize)}
-                      </p>
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Instructor */}
                 {(liveSessionData?.instructorId || videoData.instructor) && (
