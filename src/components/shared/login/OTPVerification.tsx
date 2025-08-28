@@ -28,6 +28,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   const [resendDisabled, setResendDisabled] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(30);
   const [error, setError] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const { postQuery } = usePostQuery();
   const { theme, resolvedTheme } = useTheme();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -76,9 +77,11 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto-submit if all fields are filled
-    if (index === 5 && newOtp.every(digit => digit !== '')) {
-      setTimeout(() => verifyOTP(), 300);
+    // Auto-submit if all fields are filled (only when the last field is filled)
+    if (index === 5 && newOtp.every(digit => digit !== '' && digit.trim() !== '')) {
+      // Clear any existing errors before auto-submit
+      setError(null);
+      setTimeout(() => verifyOTP(), 500); // Increased delay to ensure state is updated
     }
   };
 
@@ -121,21 +124,30 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     }
     
     // Auto-submit if all fields are filled
-    if (pastedArray.length >= 6) {
-      setTimeout(() => verifyOTP(), 300);
+    if (pastedArray.length >= 6 && pastedArray.every(digit => digit.trim() !== '')) {
+      // Clear any existing errors before auto-submit
+      setError(null);
+      setTimeout(() => verifyOTP(), 500); // Increased delay to ensure state is updated
     }
   };
 
   // Verify OTP
   const verifyOTP = async (): Promise<void> => {
-    const otpString = otp.join('');
-    if (otpString.length !== 6) {
-      setError('Please enter a valid 6-digit verification code');
+    const otpString = otp.join('').trim();
+    console.log('🔍 OTP Debug:', { otp, otpString, length: otpString.length });
+    
+    // Check if OTP is complete (6 digits)
+    const filledDigits = otp.filter(digit => digit && digit.trim() !== '').length;
+    if (filledDigits < 6) {
+      // Silently return without showing any error - user is still typing
+      console.log('🔍 OTP incomplete, waiting for user to finish typing...');
       return;
     }
 
+    // Clear any previous errors and start verification
     setLoading(true);
-    setError(null);
+    setIsVerifying(true);
+    setError(null); // Clear any existing errors
     
     try {
       const verifyData: IVerifyEmailData = {
@@ -149,15 +161,22 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
         requireAuth: false,
         showToast: false, // Disable automatic toasts to avoid conflicts
         onSuccess: (response: any) => {
+          console.log('✅ Verification Success:', response);
           // Clear any previous errors
           setError(null);
           
           // Show success toast and call success handler
           showToast.success(response.message || 'Email verified successfully');
-          onVerificationSuccess();
+          
+          // Small delay to ensure error state is cleared before calling success
+          setTimeout(() => {
+            onVerificationSuccess();
+          }, 100);
         },
         onFail: (error: any) => {
-          const errorMessage = error?.response?.data?.message || 'Invalid verification code';
+          console.log('🚨 Verification Error:', error);
+          // Only show error if it's actually from the server (wrong code)
+          const errorMessage = error?.response?.data?.message || error?.message || 'Invalid verification code';
           setError(errorMessage);
           showToast.error(errorMessage);
         }
@@ -168,6 +187,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
       showToast.error(errorMessage);
     } finally {
       setLoading(false);
+      setIsVerifying(false);
     }
   };
 
@@ -298,7 +318,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
       <div className="space-y-3">
         <button
           onClick={verifyOTP}
-          disabled={otp.some(digit => !digit) || loading}
+          disabled={otp.filter(digit => digit && digit.trim() !== '').length < 6 || loading}
           className="w-full py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-primary-500/30 disabled:hover:translate-y-0"
         >
           <span className="relative z-10 flex items-center justify-center">

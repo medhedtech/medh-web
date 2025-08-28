@@ -20,7 +20,7 @@ export const NavbarTop: React.FC = () => {
   }, []);
 
   return (
-    <div className="hidden lg:grid grid-cols-12 py-4 pl-15px items-center gap-30px border-b border-borderColor dark:border-borderColor-dark -mx-15px bg-white/80 dark:bg-zinc-900/95 backdrop-blur-sm transition-colors duration-300">
+    <div className="hidden lg:grid grid-cols-12 py-4 pl-15px items-center gap-30px border-b border-white/5 dark:border-gray-700/5 -mx-15px backdrop-blur-sm transition-colors duration-300">
       <div className="col-start-1 col-span-3">
         <ul className="flex items-center nav-list">
           <li className="relative group">

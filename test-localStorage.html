@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test LocalStorage</title>
+</head>
+<body>
+    <h1>LocalStorage Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        function checkLocalStorage() {
+            const output = document.getElementById('output');
+            
+            // Check for remembered accounts
+            const rememberedAccounts = localStorage.getItem('medh_remembered_accounts');
+            output.innerHTML += '<h2>Remembered Accounts:</h2>';
+            output.innerHTML += '<pre>' + JSON.stringify(rememberedAccounts, null, 2) + '</pre>';
+            
+            if (rememberedAccounts) {
+                try {
+                    const parsed = JSON.parse(rememberedAccounts);
+                    output.innerHTML += '<h3>Parsed Data:</h3>';
+                    output.innerHTML += '<pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                } catch (e) {
+                    output.innerHTML += '<p>Error parsing JSON: ' + e.message + '</p>';
+                }
+            }
+            
+            // Check for other relevant keys
+            const allKeys = Object.keys(localStorage);
+            output.innerHTML += '<h2>All LocalStorage Keys:</h2>';
+            output.innerHTML += '<ul>';
+            allKeys.forEach(key => {
+                if (key.includes('medh') || key.includes('login') || key.includes('auth')) {
+                    output.innerHTML += '<li><strong>' + key + ':</strong> ' + localStorage.getItem(key) + '</li>';
+                }
+            });
+            output.innerHTML += '</ul>';
+        }
+        
+        // Clear invalid quick login keys
+        function clearInvalidKeys() {
+            const rememberedAccounts = localStorage.getItem('medh_remembered_accounts');
+            if (rememberedAccounts) {
+                try {
+                    const parsed = JSON.parse(rememberedAccounts);
+                    if (parsed.accounts) {
+                        // Remove quick login keys from all accounts
+                        parsed.accounts.forEach(account => {
+                            delete account.quickLoginKey;
+                            delete account.keyId;
+                        });
+                        localStorage.setItem('medh_remembered_accounts', JSON.stringify(parsed));
+                        alert('Invalid quick login keys cleared!');
+                        location.reload();
+                    }
+                } catch (e) {
+                    alert('Error clearing keys: ' + e.message);
+                }
+            }
+        }
+        
+        checkLocalStorage();
+    </script>
+    
+    <button onclick="clearInvalidKeys()">Clear Invalid Quick Login Keys</button>
+</body>
+</html>

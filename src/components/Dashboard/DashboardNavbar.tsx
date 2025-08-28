@@ -37,7 +37,7 @@ import {
 // APIs and hooks
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { clearAuthData } from "@/utils/auth";
+import { clearAuthData, logoutUser } from "@/utils/auth";
 
 // Custom interfaces for TypeScript
 interface CustomJwtPayload {
@@ -458,28 +458,26 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   };
 
   // Handle logout
-  const handleLogout = () => {
-    // Clear all auth data using auth utility, but keep remember me settings
-    const keepRememberMe = true; // This preserves email for next login
-    clearAuthData(keepRememberMe);
-    
-    // Clear additional data that might be stored
-    localStorage.removeItem("role");
-    localStorage.removeItem("permissions");
-    localStorage.removeItem("email");
-    localStorage.removeItem("password");
-    localStorage.removeItem("lastLoginTime"); // Clear last login time
-    
-    // Remove cookies if they exist
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    
-    setIsLoggedIn(false);
-    setIsDropdownOpen(false);
-    setLastLoginTime(""); // Clear last login time from state
-    
-    // Redirect to home
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      // Use the new logoutUser function that calls backend API
+      await logoutUser(true); // Keep remember me settings
+      
+      setIsLoggedIn(false);
+      setIsDropdownOpen(false);
+      setLastLoginTime(""); // Clear last login time from state
+      
+      // Redirect to home
+      router.push("/");
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback to local logout if API fails
+      clearAuthData(true);
+      setIsLoggedIn(false);
+      setIsDropdownOpen(false);
+      setLastLoginTime("");
+      router.push("/");
+    }
   };
 
   // Get dashboard URL based on user role
@@ -597,7 +595,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 w-full bg-white dark:bg-gray-900 shadow-md transition-all duration-200"
+      className="fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-sm shadow-md transition-all duration-200 border-b border-white/5 dark:border-gray-700/5"
     >
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex justify-between items-center ${

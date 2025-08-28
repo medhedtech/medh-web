@@ -10,6 +10,7 @@ import LoadingIndicator from "@/components/shared/loaders/LoadingIndicator";
 import SkeletonLoader from "@/components/shared/loaders/SkeletonLoader";
 import useScreenSize from "@/hooks/useScreenSize";
 import Cookies from 'js-cookie';
+import { logoutUser } from "@/utils/auth";
 
 import { 
   LayoutDashboard, 
@@ -288,11 +289,26 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   };
 
   // Logout handler
-  const handleLogout = () => {
-    // Clear cookies and redirect to login
-    Cookies.remove('userName');
-    Cookies.remove('userRole');
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      // Call the backend logout API to set quick login expiration
+      await logoutUser(true); // Keep remember me settings
+      
+      // Redirect to login
+      window.location.href = '/login';
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // If API call fails, still clear local data and redirect
+      try {
+        Cookies.remove('userName');
+        Cookies.remove('userRole');
+      } catch (localError) {
+        console.error("Error during local logout cleanup:", localError);
+      }
+      
+      // Redirect to login
+      window.location.href = '/login';
+    }
   };
 
   // Close dashboard handler

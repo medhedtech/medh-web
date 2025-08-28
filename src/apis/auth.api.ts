@@ -26,6 +26,7 @@ export interface IRegisterData {
 export interface ILoginData {
   email: string;
   password?: string;
+  generate_quick_login_key?: boolean;
 }
 
 export interface IVerifyEmailData {

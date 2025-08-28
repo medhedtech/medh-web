@@ -212,16 +212,17 @@ const Navbar = ({ onMobileMenuOpen, viewportWidth = 0, scrollProgress = 0 }: Nav
   const navbarAppearanceClass = (() => {
     let baseClasses = "fixed w-full transition-all duration-500 ease-out z-50";
     
+    // Light blur with no background - clean transparent look
     if (isSearchActive) {
-      baseClasses += " backdrop-blur-xl bg-white/10 dark:bg-black/10 shadow-2xl dark:shadow-black/40 border-b border-white/30 dark:border-gray-700/30";
+      baseClasses += " backdrop-blur-sm shadow-lg dark:shadow-black/20 border-b border-white/10 dark:border-gray-700/10";
     } else if (isScrolled) {
-      baseClasses += " backdrop-blur-xl bg-white/5 dark:bg-black/5 shadow-xl dark:shadow-black/30 border-b border-white/20 dark:border-gray-700/20";
+      baseClasses += " backdrop-blur-sm shadow-md dark:shadow-black/10 border-b border-white/5 dark:border-gray-700/5";
     } else {
-      baseClasses += " backdrop-blur-lg bg-white/3 dark:bg-black/3 border-b border-white/10 dark:border-gray-700/10";
+      baseClasses += " backdrop-blur-sm border-b border-white/5 dark:border-gray-700/5";
     }
     
-    // Add glassmorphism effect
-    baseClasses += " backdrop-saturate-150 backdrop-contrast-125";
+    // Light glassmorphism effect - subtle and clean
+    baseClasses += " backdrop-saturate-110";
     
     // Visibility based on animation (we keep it visible at all times per requirement)
     if (!isVisible) {

@@ -48,6 +48,12 @@ const QuickLoginComponent: React.FC<QuickLoginComponentProps> = ({ className = "
     setError("");
 
     try {
+      console.log('🔐 Quick Login Debug - Sending request:', {
+        email: email.trim(),
+        quick_login_key: quickLoginKey.trim(),
+        url: authAPI.local.quickLogin
+      });
+
       const response = await fetch(authAPI.local.quickLogin, {
         method: "POST",
         headers: {
@@ -59,7 +65,11 @@ const QuickLoginComponent: React.FC<QuickLoginComponentProps> = ({ className = "
         }),
       });
 
+      console.log('🔐 Quick Login Debug - Response status:', response.status);
+      console.log('🔐 Quick Login Debug - Response headers:', Object.fromEntries(response.headers.entries()));
+
       const result = await response.json();
+      console.log('🔐 Quick Login Debug - Response data:', result);
 
       if (result.success && result.data) {
         // Store authentication data
@@ -83,7 +93,7 @@ const QuickLoginComponent: React.FC<QuickLoginComponentProps> = ({ className = "
           localStorage.setItem("userRole", role);
         }
 
-        showToast.success("⚡ Quick login successful!");
+        showToast.success("⚡ Quick login successful! Welcome back!");
         
         // Redirect based on role
         const role = Array.isArray(result.data.user?.role) ? result.data.user.role[0] : result.data.user?.role;
@@ -91,12 +101,16 @@ const QuickLoginComponent: React.FC<QuickLoginComponentProps> = ({ className = "
                            role === 'instructor' ? '/dashboards/instructor' : 
                            '/dashboards/student';
         
-        window.location.href = redirectPath;
+        // Add a small delay to show the success message
+        setTimeout(() => {
+          window.location.href = redirectPath;
+        }, 1000);
       } else {
+        console.error('🔐 Quick Login Debug - Failed response:', result);
         setError(result.message || "Quick login failed. Please check your key and try again.");
       }
     } catch (error: any) {
-      console.error("Quick login error:", error);
+      console.error("🔐 Quick Login Debug - Network error:", error);
       if (error.message?.includes('Network Error')) {
         setError("Network connection issue. Please check your internet connection.");
       } else {

@@ -17,7 +17,7 @@ const CookiePolicyPage = () => {
       <Header styles="header-style-1" />
       
       {/* Simple Breadcrumb */}
-      <div className="bg-gray-100 dark:bg-gray-900 py-6 pt-20">
+      <div className="bg-gray-100 dark:bg-gray-900 py-6 pt-20 md:pt-24 lg:pt-28">
         <div className="container mx-auto px-4">
             <h1 className="text-4xl font-bold text-[#7ECA9D] text-center">Cookie Policy</h1>
             </div>

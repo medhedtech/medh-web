@@ -21,7 +21,6 @@ import {
   ArrowRight, 
   ChevronLeft, 
   Shield,
-  RefreshCw,
   Check,
   Clock
 } from "lucide-react";
@@ -67,6 +66,7 @@ const newPasswordSchema = yup.object({
 });
 
 const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath }) => {
+  console.log('🏗️ ForgotPasswordForm component loaded - Current step will be shown');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { theme, setTheme } = useTheme();
@@ -86,6 +86,9 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string>('');
+
+  const [tempPasswordExpired, setTempPasswordExpired] = useState<boolean>(false);
+  const [tempPasswordSentAt, setTempPasswordSentAt] = useState<Date | null>(null);
 
   // Get current schema based on step
   const getCurrentSchema = () => {
@@ -225,6 +228,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
   };
 
   const onSubmit = async (data: ForgotPasswordFormInputs): Promise<void> => {
+    console.log('🚀 ONSUBMIT CALLED - Step:', currentStep, 'Data:', data);
     if (isSubmitting) return;
 
     // Step-specific validation
@@ -290,20 +294,27 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
       } else if (currentStep === 2) {
         // Step 2: Verify temporary password
         await postQuery({
-          url: apiUrls?.user?.verfiySystemPassword,
+          url: apiUrls?.user?.verifySystemPassword,
           postData: {
             email: data.email,
             tempPassword: data.tempPassword,
           },
           requireAuth: false,
           onSuccess: (res: any) => {
+            console.log('🎯 FRONTEND - Verify password response received:', res);
+            console.log('🎯 FRONTEND - Response success:', res?.success);
+            console.log('🎯 FRONTEND - Response message:', res?.message);
+            
             showToast.dismiss(loadingToastId);
             if (res?.success) {
+              console.log('✅ FRONTEND - Password verification successful');
               showToast.success("Password verified successfully!", { duration: 3000 });
               setTempPasswordVerified(true);
               setCurrentStep(3);
             } else {
+              console.log('❌ FRONTEND - Password verification failed');
               const errorMessage = res?.message || "Invalid temporary password";
+              console.log('❌ FRONTEND - Error message:', errorMessage);
               showToast.error(errorMessage, { duration: 6000 });
             }
           },
@@ -348,6 +359,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
       console.error('Form submission error:', error);
       showToast.error("An unexpected error occurred. Please try again.", { duration: 5000 });
     } finally {
+      console.log('🏁 ONSUBMIT COMPLETED - Setting isSubmitting to false');
       setIsSubmitting(false);
     }
   };
@@ -527,7 +539,11 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
             {/* Form area */}
             <div className="px-4 sm:px-8 pb-4 sm:pb-6">
               <form 
-                onSubmit={handleSubmit(onSubmit)} 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  console.log('📋 FORM SUBMIT - Preventing default and calling handleSubmit');
+                  handleSubmit(onSubmit)(e);
+                }}
                 className="space-y-4"
                 onKeyDown={handleKeyDown}
               >
@@ -718,6 +734,11 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
                   <button
                     type="submit"
                     disabled={isSubmitting || (currentStep === 1 && !recaptchaValue)}
+                    onClick={() => {
+                      console.log('🔘 BUTTON CLICKED - Step:', currentStep);
+                      console.log('🔘 Button disabled?', isSubmitting || (currentStep === 1 && !recaptchaValue));
+                      console.log('🔘 isSubmitting:', isSubmitting);
+                    }}
                     className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
                   >
                     <span className="relative z-10 flex items-center justify-center">
@@ -739,6 +760,8 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ redirectPath })
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
+
+
 
                   {/* Back Button - show for steps 2 and 3 */}
                   {currentStep > 1 && (

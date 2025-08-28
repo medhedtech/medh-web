@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { buildAdvancedComponent, getResponsive, typography, buildComponent } from "@/utils/designSystem";
+import { logoutUser } from "@/utils/auth";
 import {
   BookOpen,
   Users,
@@ -162,9 +163,25 @@ const InstructorLayout: React.FC<InstructorLayoutProps> = ({
     return items?.some(item => pathname === item.href);
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      // Call the backend logout API to set quick login expiration
+      await logoutUser(true); // Keep remember me settings
+      
+      // Redirect to login
+      router.push("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // If API call fails, still clear local data and redirect
+      try {
+        localStorage.clear();
+      } catch (localError) {
+        console.error("Error during local logout cleanup:", localError);
+      }
+      
+      // Redirect to login
+      router.push("/login");
+    }
   };
 
   return (

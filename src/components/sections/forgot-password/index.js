@@ -82,7 +82,7 @@ const ForgotPassword = () => {
       // Step 2: Verify temporary password
       try {
         await postQuery({
-          url: apiUrls?.user?.verfiySystemPassword,
+          url: apiUrls?.user?.verifySystemPassword,
           postData: {
             email: data?.email,
             tempPassword: data?.tempPassword,

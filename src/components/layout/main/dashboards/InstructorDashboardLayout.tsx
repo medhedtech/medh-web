@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, MoreHorizontal, Menu, X, LogOut, Home, ArrowLeft } from "lucide-react";
 import Cookies from 'js-cookie';
+import { logoutUser } from "@/utils/auth";
 
 // Component imports
 import SidebarDashboard from "@/components/sections/sub-section/dashboards/SidebarDashboard";
@@ -409,32 +410,39 @@ const InstructorDashboardLayout: React.FC<InstructorDashboardLayoutProps> = ({
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      // Clear localStorage items
-      const keysToRemove = [
-        "userId", 
-        "token", 
-        "fullName", 
-        "full_name", 
-        "role", 
-        "permissions",
-        "email",
-        "password",
-        "rememberMe"
-      ];
+      // Call the backend logout API to set quick login expiration
+      await logoutUser(true); // Keep remember me settings
       
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      // Clear cookies
-      Cookies.remove("token");
-      Cookies.remove("userId");
-      
-      // Use the new path format for redirecting to login
+      // Redirect to login
       router.push("/login/");
     } catch (error) {
       console.error("Error during logout:", error);
-      // If error, still try to redirect
+      // If API call fails, still clear local data and redirect
+      try {
+        const keysToRemove = [
+          "userId", 
+          "token", 
+          "fullName", 
+          "full_name", 
+          "role", 
+          "permissions",
+          "email",
+          "password",
+          "rememberMe"
+        ];
+        
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Clear cookies
+        Cookies.remove("token");
+        Cookies.remove("userId");
+      } catch (localError) {
+        console.error("Error during local logout cleanup:", localError);
+      }
+      
+      // Redirect to login
       router.push("/login/");
     }
   };

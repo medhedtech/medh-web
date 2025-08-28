@@ -159,7 +159,31 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       }
 
       // Extract and set the response data
-      const apiData = response.data as T;
+      // Handle both Axios response format and apiClient response format
+      const apiData = (response as any).data !== undefined 
+        ? (response as any).data as T  // Axios format: { data: actualData }
+        : response as T;               // apiClient format: actualData directly
+      
+      // Check if apiClient returned an error response (for 401, 500, etc.)
+      if ((response as any).status === 'error') {
+        const errorResponse = response as any;
+        const error = new Error(errorResponse.message || errorResponse.error || 'Request failed');
+        
+        // Try to determine the HTTP status from the error message or default to 401 for auth errors
+        let httpStatus = 500; // Default to server error
+        if (errorResponse.error === 'Unauthorized' || errorResponse.message === 'Unauthorized') {
+          httpStatus = 401;
+        } else if (errorResponse.message?.includes('Invalid credentials')) {
+          httpStatus = 401;
+        }
+        
+        (error as any).response = {
+          status: httpStatus,
+          data: errorResponse
+        };
+        throw error;
+      }
+      
       setData(apiData);
 
       // Enhanced logging for login requests
@@ -213,9 +237,11 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       
       // Handle timeout errors specifically
       let message = errorMessage;
-      if (axiosError?.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      
+      // Check if error message indicates specific issues
+      if (error.message.includes('Request timeout') || error.message.includes('timeout')) {
         message = "⏱️ Request timed out. The server is taking longer than expected to respond. Please check your connection and try again.";
-      } else if (axiosError?.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+      } else if (error.message.includes('Request failed') || axiosError?.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
         message = "🌐 Network error. Please check your internet connection and try again.";
       } else if (axiosError?.response?.status === 503) {
         message = "🔧 Service temporarily unavailable. The server is currently under maintenance. Please try again in a few minutes.";

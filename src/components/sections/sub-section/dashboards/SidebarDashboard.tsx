@@ -117,6 +117,7 @@ import {
 } from 'lucide-react';
 import { jwtDecode } from "jwt-decode";
 import { easeInOut, easeOut } from "framer-motion";
+import { logoutUser } from "@/utils/auth";
 
 // Import the new sidebar components
 import {
@@ -709,32 +710,40 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      // Clear localStorage items
-      const keysToRemove = [
-        "userId", 
-        "token", 
-        "fullName", 
-        "full_name", 
-        "role", 
-        "permissions",
-        "email",
-        "password",
-        "rememberMe"
-      ];
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      // Clear cookies
-      Cookies.remove("token");
-      Cookies.remove("userId");
+      // Use the new logoutUser function that calls backend API
+      await logoutUser(true); // Keep remember me settings
       
       // Use the new path format for redirecting to login
       router.push("/login/");
     } catch (error) {
       console.error("Error during logout:", error);
-      // If error, still try to redirect
+      // Fallback to local logout if API fails
+      try {
+        // Clear localStorage items
+        const keysToRemove = [
+          "userId", 
+          "token", 
+          "fullName", 
+          "full_name", 
+          "role", 
+          "permissions",
+          "email",
+          "password",
+          "rememberMe"
+        ];
+        
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Clear cookies
+        Cookies.remove("token");
+        Cookies.remove("userId");
+      } catch (localError) {
+        console.error("Error during local logout cleanup:", localError);
+      }
+      
+      // Redirect to login
       router.push("/login/");
     }
   };

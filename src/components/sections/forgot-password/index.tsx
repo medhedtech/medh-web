@@ -37,6 +37,8 @@ const schema = yup
   .required();
 
 const ForgotPassword: React.FC = () => {
+  console.log('🏗️ ForgotPasswordSection component rendered');
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const { theme, setTheme } = useTheme();
@@ -75,6 +77,11 @@ const ForgotPassword: React.FC = () => {
       console.log('Password length:', newPasswordValue?.length);
     }
   }, [newPasswordValue]);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('🔄 State Change - emailSent:', emailSent, 'tempPasswordVerified:', tempPasswordVerified);
+  }, [emailSent, tempPasswordVerified]);
 
   // Initialize theme to light if not set
   useEffect(() => {
@@ -148,6 +155,11 @@ const ForgotPassword: React.FC = () => {
   };
 
   const onSubmit = async (data: IForgotPasswordFormData): Promise<void> => {
+    console.log('🚀 FORM SUBMITTED - onSubmit called');
+    console.log('📝 Form data received:', data);
+    console.log('📧 emailSent state:', emailSent);
+    console.log('🔐 tempPasswordVerified state:', tempPasswordVerified);
+    
     if (isSubmitting) return;
     
     // Step-specific validation
@@ -200,6 +212,11 @@ const ForgotPassword: React.FC = () => {
     const loadingToastId = showToast.loading("🔄 Processing your request...", { duration: 15000 });
     
     try {
+      console.log('🔍 Current state check:');
+      console.log('📧 emailSent:', emailSent);
+      console.log('🔐 tempPasswordVerified:', tempPasswordVerified);
+      console.log('📝 Form data:', data);
+      
       if (!emailSent) {
         // Step 1: Send temporary password email
         const response = await postQuery({
@@ -211,13 +228,21 @@ const ForgotPassword: React.FC = () => {
           disableToast: true, // Handle toasts manually
         });
 
+        console.log('📡 Step 1 Response Debug:', response);
+        
         if (response && response.data && (response.data as any).success) {
           showToast.dismiss(loadingToastId);
           showToast.success("📧 Password reset email sent! Please check your inbox.", { duration: 4000 });
-          console.log('Setting emailSent to true...');
+          console.log('✅ SUCCESS CONDITION MET - Setting emailSent to true...');
+          console.log('📧 Before setState - emailSent:', emailSent);
           setEmailSent(true);
           setRecaptchaError(false);
-          console.log('Successfully moved to step 2, emailSent should now be:', true);
+          console.log('📧 After setState called - emailSent should now be true');
+          
+          // Force immediate re-render check
+          setTimeout(() => {
+            console.log('📧 State check after 100ms - emailSent:', emailSent);
+          }, 100);
           
           // Force a re-render to ensure state update
           setTimeout(() => {
@@ -230,35 +255,98 @@ const ForgotPassword: React.FC = () => {
         }
       } else if (!tempPasswordVerified) {
         // Step 2: Verify temporary password
-        const response = await postQuery({
-          url: apiUrls?.user?.verfiySystemPassword,
-          postData: {
-            email: data.email,
-            tempPassword: data.tempPassword,
-          },
-          requireAuth: false,
-          disableToast: true,
-        });
-
-        if (response && response.data && (response.data as any).success) {
-          showToast.dismiss(loadingToastId);
-          showToast.success("✅ Password verified successfully!", { duration: 3000 });
-          setTempPasswordVerified(true);
-          console.log('Successfully moved to step 3, tempPasswordVerified:', true);
-        } else {
-          showToast.dismiss(loadingToastId);
+        try {
+          console.log('🔐 Starting temporary password verification...');
+          console.log('📧 Email:', data.email);
+          console.log('🔑 Temp Password:', data.tempPassword);
+          console.log('🔑 Temp Password Length:', data.tempPassword?.length);
+          console.log('🌐 API URL:', apiUrls?.user?.verifySystemPassword);
+          console.log('🔧 Full apiUrls object:', apiUrls);
+          console.log('🔧 User URLs:', apiUrls?.user);
+          console.log('🔧 requireAuth set to:', false);
+          console.log('🔧 About to call postQuery...');
           
-          // Handle validation errors from API
-          const apiResponse = response?.data as any;
-          if (apiResponse?.errors && Array.isArray(apiResponse.errors)) {
-            // Show the first validation error
-            const firstError = apiResponse.errors[0];
-            const errorMessage = firstError?.msg || "Validation failed";
-            showToast.error(`❌ ${errorMessage}`, { duration: 6000 });
+          const response = await postQuery({
+            url: apiUrls?.user?.verifySystemPassword,
+            postData: {
+              email: data.email,
+              tempPassword: data.tempPassword,
+            },
+            requireAuth: false, // Use apiClient (fetch) - let's handle response properly
+            disableToast: true,
+            debug: true, // Enable debug logging
+          });
+
+          console.log('🎯 postQuery completed successfully');
+          console.log('📡 API Response received:', response);
+          console.log('📡 Response type:', typeof response);
+          console.log('📡 Response keys:', response ? Object.keys(response) : 'null');
+          console.log('📡 Response.data:', response?.data);
+          console.log('📡 Response.error:', response?.error);
+          console.log('📡 Full response object:', JSON.stringify(response, null, 2));
+
+          // Using apiClient (fetch), so response might be direct API response or wrapped
+          // Check both formats: response.data.success (wrapped) or response.success (direct)
+          const apiResponse = response?.data || response;
+          const isSuccess = apiResponse?.success;
+          
+          if (response && isSuccess) {
+            showToast.dismiss(loadingToastId);
+            showToast.success("✅ Password verified successfully!", { duration: 3000 });
+            
+            // Store verification token for next step
+            const verificationToken = apiResponse?.data?.verification_token;
+            if (verificationToken) {
+              console.log('🔑 Verification token received:', verificationToken);
+              // You might want to store this token for the next step
+            }
+            
+            setTempPasswordVerified(true);
+            console.log('Successfully moved to step 3, tempPasswordVerified:', true);
           } else {
-            const errorMessage = apiResponse?.message || "Invalid password";
-            showToast.error(`❌ ${errorMessage}`, { duration: 6000 });
+            showToast.dismiss(loadingToastId);
+            
+            // Handle connection errors first
+            if (response?.error) {
+              console.error('API Connection Error:', response.error);
+              showToast.error(`🌐 Connection Error: ${response.error}`, { duration: 8000 });
+              return;
+            }
+            
+            // Handle validation errors from API
+            // apiResponse already defined above
+            if (apiResponse?.errors && Array.isArray(apiResponse.errors)) {
+              // Show the first validation error
+              const firstError = apiResponse.errors[0];
+              const errorMessage = firstError?.msg || "Validation failed";
+              showToast.error(`❌ ${errorMessage}`, { duration: 6000 });
+            } else {
+              const errorMessage = apiResponse?.message || "Invalid password";
+              showToast.error(`❌ ${errorMessage}`, { duration: 6000 });
+            }
           }
+        } catch (error) {
+          showToast.dismiss(loadingToastId);
+          console.error('❌ CATCH BLOCK - Unexpected error during verification:', error);
+          console.error('❌ Error type:', typeof error);
+          console.error('❌ Error constructor:', error?.constructor?.name);
+          console.error('❌ Error keys:', error ? Object.keys(error) : 'null');
+          console.error('❌ Error message:', (error as any)?.message);
+          console.error('❌ Error code:', (error as any)?.code);
+          console.error('❌ Error response:', (error as any)?.response);
+          console.error('❌ Error stack:', (error as any)?.stack);
+          
+          // Check if it's a network/connection error
+          if ((error as any)?.code === 'NETWORK_ERROR' || (error as any)?.message?.includes('Network Error')) {
+            showToast.error("🌐 Network connection error. Please check your internet and try again.", { duration: 8000 });
+          } else if ((error as any)?.code === 'ECONNABORTED' || (error as any)?.message?.includes('timeout')) {
+            showToast.error("⏱️ Request timeout. Please try again.", { duration: 8000 });
+          } else {
+            showToast.error("🚨 An unexpected error occurred during verification. Please try again.", { duration: 8000 });
+          }
+          
+          setIsSubmitting(false);
+          return; // Exit early to prevent outer catch from executing
         }
       } else {
         // Step 3: Update to new password
@@ -304,7 +392,11 @@ const ForgotPassword: React.FC = () => {
         }
       }
     } catch (error) {
+      // Only handle errors that weren't already handled by inner try-catch blocks
+      if (!isSubmitting) return; // If isSubmitting is already false, error was handled
+      
       showToast.dismiss(loadingToastId);
+      console.error('❌ Outer catch - Unhandled error:', error);
       const enhancedError = getEnhancedErrorMessage(error);
       showToast.error(enhancedError, { duration: 6000 });
     } finally {
@@ -488,7 +580,14 @@ const ForgotPassword: React.FC = () => {
             
             {/* Form area */}
             <div className="px-4 sm:px-8 pb-4 sm:pb-8">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-5">
+              <form 
+                onSubmit={(e) => {
+                  console.log('📋 FORM onSubmit event triggered');
+                  console.log('📋 Event:', e);
+                  handleSubmit(onSubmit)(e);
+                }}
+                className="space-y-3 sm:space-y-5"
+              >
                 
                 {/* Email field */}
                 <div>
@@ -667,6 +766,13 @@ const ForgotPassword: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting || (!emailSent && recaptchaError)}
+                    onClick={() => {
+                      console.log('🔘 BUTTON CLICKED - Verify Password');
+                      console.log('🔘 Button disabled?', isSubmitting || (!emailSent && recaptchaError));
+                      console.log('🔘 isSubmitting:', isSubmitting);
+                      console.log('🔘 emailSent:', emailSent);
+                      console.log('🔘 recaptchaError:', recaptchaError);
+                    }}
                     className="w-full py-2 sm:py-2.5 px-4 bg-gradient-to-r from-primary-500 to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl shadow-lg shadow-primary-500/30 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 relative overflow-hidden group text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
                   >
                     <span className="relative z-10 flex items-center justify-center">

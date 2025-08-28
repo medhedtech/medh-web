@@ -158,3 +158,4 @@ The frontend will also log detailed response information:
 
 This comprehensive logging should help identify exactly where the login process is failing.
 
+

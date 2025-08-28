@@ -266,6 +266,58 @@ export const clearAuthData = (keepRememberMe: boolean = false): void => {
 };
 
 /**
+ * Logout user and clear auth data
+ * @param keepRememberMe Whether to preserve the remember me setting
+ */
+export const logoutUser = async (keepRememberMe: boolean = false): Promise<void> => {
+  try {
+    // Call backend logout API to set quick login expiration
+    const token = getAuthToken();
+    if (token) {
+      // Use the correct API base URL
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL_DEV || 'http://localhost:8080/api/v1';
+      const logoutUrl = `${apiBaseUrl}/auth/logout`;
+      
+      console.log('🔐 Calling logout API:', logoutUrl);
+      
+      const response = await fetch(logoutUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          session_id: localStorage.getItem('session_id') || null
+        })
+      });
+      
+      if (response.ok) {
+        console.log('✅ Logout API call successful');
+      } else {
+        console.error('❌ Logout API call failed:', response.status, response.statusText);
+      }
+    }
+  } catch (error) {
+    console.error('Error calling logout API:', error);
+    // Continue with local cleanup even if API call fails
+  } finally {
+    // Clear local auth data
+    clearAuthData(keepRememberMe);
+    
+    // Clear additional auth-related data
+    localStorage.removeItem('role');
+    localStorage.removeItem('permissions');
+    localStorage.removeItem('email');
+    localStorage.removeItem('password');
+    localStorage.removeItem('session_id');
+    
+    // Clear cookies
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  }
+};
+
+/**
  * Store the provided token directly in the local variable and storage
  * @param token The JWT token from the x-access-token header
  */

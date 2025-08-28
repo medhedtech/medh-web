@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { usePathname, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { jwtDecode } from "jwt-decode";
+import { logoutUser } from "@/utils/auth";
 
 // Define the types for navigation items
 export interface SubItem {
@@ -298,26 +299,10 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
   };
   
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      // Clear localStorage items
-      const keysToRemove = [
-        "userId", 
-        "token", 
-        "fullName", 
-        "full_name", 
-        "role", 
-        "permissions",
-        "email",
-        "password",
-        "rememberMe"
-      ];
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      // Clear cookies
-      Cookies.remove("token");
-      Cookies.remove("userId");
+      // Call the backend logout API to set quick login expiration
+      await logoutUser(true); // Keep remember me settings
       
       // Update user info state
       setUserInfo({
@@ -336,7 +321,43 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       router.push("/login");
     } catch (error) {
       console.error("Error during logout:", error);
-      // If error, still try to redirect
+      // If API call fails, still clear local data and redirect
+      try {
+        const keysToRemove = [
+          "userId", 
+          "token", 
+          "fullName", 
+          "full_name", 
+          "role", 
+          "permissions",
+          "email",
+          "password",
+          "rememberMe"
+        ];
+        
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Clear cookies
+        Cookies.remove("token");
+        Cookies.remove("userId");
+      } catch (localError) {
+        console.error("Error during local logout cleanup:", localError);
+      }
+      
+      // Update user info state
+      setUserInfo({
+        isLoggedIn: false,
+        fullName: "User",
+        userRole: "",
+        userEmail: "",
+        userImage: ""
+      });
+      
+      // Close menus
+      setMobileMenuOpen(false);
+      setSidebarOpen(false);
+      
+      // Redirect to login page
       router.push("/login");
     }
   };

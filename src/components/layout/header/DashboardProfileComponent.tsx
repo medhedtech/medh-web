@@ -22,7 +22,7 @@ import {
 // APIs and hooks
 import { apiUrls } from "@/apis";
 import useGetQuery from "@/hooks/getQuery.hook";
-import { clearAuthData } from "@/utils/auth";
+import { clearAuthData, logoutUser } from "@/utils/auth";
 
 // Custom interfaces for TypeScript
 interface CustomJwtPayload {
@@ -238,24 +238,24 @@ const DashboardProfileComponent: React.FC<DashboardProfileProps> = ({ isScrolled
   };
 
   // Handle logout
-  const handleLogout = () => {
-    clearAuthData();
-    
-    // Clear additional data that might be stored
-    localStorage.removeItem("role");
-    localStorage.removeItem("permissions");
-    localStorage.removeItem("email");
-    localStorage.removeItem("password");
-    
-    // Remove cookies if they exist
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    
-    setIsLoggedIn(false);
-    setIsDropdownOpen(false);
-    
-    // Redirect to home
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      // Use the new logoutUser function that calls backend API
+      await logoutUser(true); // Keep remember me settings
+      
+      setIsLoggedIn(false);
+      setIsDropdownOpen(false);
+      
+      // Redirect to home
+      router.push("/");
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback to local logout if API fails
+      clearAuthData(true);
+      setIsLoggedIn(false);
+      setIsDropdownOpen(false);
+      router.push("/");
+    }
   };
 
   if (!isLoggedIn) {

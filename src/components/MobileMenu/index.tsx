@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { MENU_CONFIG } from '@/constants/menu';
 import { STYLES } from '@/constants/uiStyles';
 import { IMobileMenuProps, IMenuItemProps } from './types';
+import { logoutUser } from '@/utils/auth';
 
 // Import modular components
 import QuickActions from './QuickActions';
@@ -384,20 +385,32 @@ const MobileMenu: React.FC<IMobileMenuProps> = ({
   }, [menuHistory]);
   
   // Handle logout with animation
-  const handleLogout = useCallback(() => {
-    // Clear auth data
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("role");
-    localStorage.removeItem("permissions");
-    localStorage.removeItem("name");
-    localStorage.removeItem("email");
-    
-    setIsLoggedIn(false);
-    closeMenu();
-    router.push("/");
-    
-    // Could add toast notification here
+  const handleLogout = useCallback(async () => {
+    try {
+      // Call the backend logout API to set quick login expiration
+      await logoutUser(true); // Keep remember me settings
+      
+      setIsLoggedIn(false);
+      closeMenu();
+      router.push("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // If API call fails, still clear local data and redirect
+      try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("role");
+        localStorage.removeItem("permissions");
+        localStorage.removeItem("name");
+        localStorage.removeItem("email");
+      } catch (localError) {
+        console.error("Error during local logout cleanup:", localError);
+      }
+      
+      setIsLoggedIn(false);
+      closeMenu();
+      router.push("/");
+    }
   }, [router]);
   
   // Enhanced menu item component for main navigation

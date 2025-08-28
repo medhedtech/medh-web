@@ -322,7 +322,7 @@ export const apiUrls = {
     updateByEmail: "/auth/update-by-email",
     toggleStudentStatus: "/auth/toggle-status",
     sendResetEmail: "/auth/forgot-password",
-    verfiySystemPassword: "/auth/verify-temp-password",
+    verifySystemPassword: "/auth/verify-temp-password",
     resetPassword: "/auth/reset-password",
     verifyEmail: '/auth/verify-email',
     resendOTP: '/auth/resend-verification',

@@ -64,7 +64,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   if (subItems.length === 0) return null;
   
   return (
-    <div className="sticky top-0 z-40 bg-white/85 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800">
+    <div className="sticky top-0 z-40 backdrop-blur-sm shadow-sm border-b border-white/5 dark:border-gray-700/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-16 flex items-center justify-between">
           {/* Title and Desktop Navigation */}
@@ -85,9 +85,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap
                     ${subItem.comingSoon 
                       ? "opacity-60 cursor-not-allowed" 
-                      : "hover:bg-gray-100 dark:hover:bg-gray-800"}
+                      : "hover:bg-transparent dark:hover:bg-transparent"}
                     ${isSubItemActive(subItem) 
-                      ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20 h-10" 
+                      ? "bg-transparent dark:bg-transparent text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20 h-10" 
                       : "text-gray-700 dark:text-gray-300"}
                   `}
                 >
@@ -98,7 +98,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   {subItem.name}
                   
                   {subItem.comingSoon && (
-                    <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center">
+                    <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-transparent dark:bg-transparent text-gray-600 dark:text-gray-400 flex items-center border border-gray-300 dark:border-gray-600">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1 animate-pulse"></span>
                       Soon
                     </span>
@@ -114,8 +114,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     onClick={() => setShowMoreDropdown(!showMoreDropdown)}
                     className={`
                       px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap
-                      hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300
-                      ${showMoreDropdown ? 'bg-gray-100 dark:bg-gray-800' : ''}
+                      hover:bg-transparent dark:hover:bg-transparent text-gray-700 dark:text-gray-300
+                      ${showMoreDropdown ? 'bg-transparent dark:bg-transparent' : ''}
                     `}
                     aria-expanded={showMoreDropdown}
                   >
@@ -134,7 +134,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 z-50 mt-1 w-56 origin-top-right rounded-md bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none"
+                        className="absolute right-0 z-50 mt-1 w-56 origin-top-right rounded-md bg-transparent dark:bg-transparent shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none backdrop-blur-sm"
                         role="menu"
                       >
                         <div className="py-2">
@@ -155,9 +155,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                                 group w-full flex items-center gap-2 px-4 py-2 text-sm text-left whitespace-nowrap
                                 ${subItem.comingSoon 
                                   ? "opacity-60 cursor-not-allowed" 
-                                  : "hover:bg-gray-50 dark:hover:bg-gray-800"}
+                                  : "hover:bg-transparent dark:hover:bg-transparent"}
                                 ${isSubItemActive(subItem) 
-                                  ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400" 
+                                  ? "bg-transparent dark:bg-transparent text-indigo-600 dark:text-indigo-400" 
                                   : "text-gray-700 dark:text-gray-300"}
                               `}
                               role="menuitem"
@@ -169,7 +169,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                               {subItem.name}
                               
                               {subItem.comingSoon && (
-                                <span className="ml-auto px-1.5 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center">
+                                <span className="ml-auto px-1.5 py-0.5 text-xs rounded-full bg-transparent dark:bg-transparent text-gray-600 dark:text-gray-400 flex items-center border border-gray-300 dark:border-gray-600">
                                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1 animate-pulse"></span>
                                   Soon
                                 </span>
@@ -189,7 +189,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
           <div className="md:hidden">
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-transparent dark:hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
               aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
@@ -212,7 +212,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             transition={{ duration: 0.2 }}
             className="md:hidden overflow-hidden"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md">
+            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/10 dark:border-gray-700/10 backdrop-blur-sm">
               {subItems.map((subItem, idx) => (
                 <motion.button
                   key={idx}
@@ -231,9 +231,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-base font-medium whitespace-nowrap
                     ${subItem.comingSoon 
                       ? "opacity-60 cursor-not-allowed" 
-                      : "hover:bg-gray-100 dark:hover:bg-gray-800"}
+                      : "hover:bg-transparent dark:hover:bg-transparent"}
                     ${isSubItemActive(subItem) 
-                      ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20 h-12" 
+                      ? "bg-transparent dark:bg-transparent text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20 h-12" 
                       : "text-gray-700 dark:text-gray-300"}
                   `}
                 >
@@ -244,7 +244,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   {subItem.name}
                   
                   {subItem.comingSoon && (
-                    <span className="ml-auto px-1.5 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center">
+                    <span className="ml-auto px-1.5 py-0.5 text-xs rounded-full bg-transparent dark:bg-transparent text-gray-600 dark:text-gray-400 flex items-center border border-gray-300 dark:border-gray-600">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1 animate-pulse"></span>
                       Soon
                     </span>

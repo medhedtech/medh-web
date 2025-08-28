@@ -524,15 +524,7 @@ const DemoBookingCard: React.FC<{ userName: string; isHighPriority?: boolean }> 
         </div>
       </div>
 
-      {/* Welcome Message */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-lg p-4 mb-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-          👋 Welcome {userName}! Ready to experience MEDH?
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          Join a 45-minute live demo session with our expert instructors. Get personalized course recommendations and career guidance.
-        </p>
-      </div>
+
 
       {/* Benefits */}
       <div className="grid grid-cols-2 gap-3 mb-4">
@@ -663,10 +655,10 @@ const itemVariants = {
 
 /**
  * StudentDashboardMain - The main dashboard component for students
- * Features: Course cards carousel, greeting, stats, announcements
+ * Features: Course cards carousel, stats, announcements
  */
 const StudentDashboardMain: React.FC = () => {
-  const [greeting, setGreeting] = useState<string>("Good day");
+
   const [userName, setUserName] = useState<string>("");
   const [courseCards, setCourseCards] = useState<any[]>([]);
   const [coursesLoading, setCoursesLoading] = useState<boolean>(true);
@@ -715,14 +707,9 @@ const StudentDashboardMain: React.FC = () => {
     return '';
   };
 
-  // Set greeting based on time of day and get user data
+  // Get user data
   useEffect(() => {
     if (!isClient) return;
-    
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good morning");
-    else if (hour < 18) setGreeting("Good afternoon");
-    else setGreeting("Good evening");
 
     // Get user name from localStorage with multiple fallbacks
     try {
@@ -783,40 +770,15 @@ const StudentDashboardMain: React.FC = () => {
     }
   }, [isClient, searchParams]);
 
-  // Set up the 2 welcome carousel slides
+  // Load actual enrolled courses instead of welcome slides
   useEffect(() => {
     if (!userName) return;
 
-    // Create the 2 welcome slides with welcome messages (removed My Course slide)
-    const welcomeSlides = [
-      {
-        id: 'welcome-slide-1',
-        title: `Welcome to MEDH, ${userName}!`,
-        subtitle: 'Your Learning Journey Starts Here',
-        message: 'Discover world-class courses designed to accelerate your career growth and unlock your potential.',
-        color: 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',
-        image: '/backgrounds/welcome-bg-1.jpg',
-        isWelcome: true,
-        actionText: 'Explore Courses',
-        secondaryText: 'Set Learning Goals'
-      },
-      {
-        id: 'welcome-slide-2',
-        title: `${greeting}, ${userName}`,
-        subtitle: 'Learn at Your Own Pace',
-        message: 'Join thousands of learners who have transformed their careers with our expert-led courses and personalized learning paths.',
-        color: 'bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500',
-        image: '/backgrounds/welcome-bg-2.jpg',
-        isWelcome: true,
-        actionText: 'Browse Categories',
-        secondaryText: 'View Progress'
-      }
-    ];
-
-    setCourseCards(welcomeSlides);
+    // Skip welcome slides and load actual courses
     setIsNewUser(false);
     setCoursesLoading(false);
-  }, [userName, greeting]);
+    setCourseCards([]); // Start with empty array, let enrolled courses load
+  }, [userName]);
 
   // Check for enrolled courses
   useEffect(() => {
@@ -934,61 +896,24 @@ const StudentDashboardMain: React.FC = () => {
       variants={containerVariants}
       className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900"
     >
-      {/* Dynamic Course Banner */}
-      <motion.div 
-        variants={itemVariants}
-        className="relative overflow-hidden rounded-xl"
-      >
-        <div className="relative w-full h-auto">
-          {/* Course Cards Carousel */}
-          <div 
-            ref={sliderRef}
-            className="relative overflow-hidden touch-pan-x"
-            onMouseEnter={pauseAutoSlide}
-            onMouseLeave={resumeAutoSlide}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{ touchAction: 'pan-x' }}
-          >
-            {courseCards.length === 0 ? (
-              // Fallback when no courses are available
-              <div className="relative w-full flex-shrink-0 bg-gradient-to-br from-slate-600 via-blue-600 to-indigo-600 dark:from-slate-700 dark:via-blue-700 dark:to-indigo-700 overflow-hidden min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[380px]">
-                <div className="absolute inset-0 bg-[url('/backgrounds/grid-pattern.svg')] opacity-10"></div>
-                <div className="w-full px-4 py-6 sm:px-6 sm:py-8 md:px-8 lg:px-16 relative z-10 h-full flex items-center">
-                  <div className="flex flex-col md:flex-row items-center md:items-center justify-center gap-4 md:gap-6 w-full max-w-[1200px] mx-auto">
-                    <div className="text-center md:text-left space-y-3 sm:space-y-4">
-                      <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight"
-                        style={{ 
-                          textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'anywhere'
-                        }}>
-                        {greeting}, {userName}
-                      </h1>
-                      <p className="text-white/95 text-xs sm:text-sm md:text-base max-w-2xl mx-auto md:mx-0 leading-relaxed"
-                        style={{ 
-                          textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'anywhere'
-                        }}>
-                        Welcome to your learning dashboard. Track your progress, manage your courses, and stay updated.
-                      </p>
-                      <div className="mt-4 flex justify-center md:justify-start">
-                        <Link 
-                          href="/courses" 
-                          className="bg-white/20 hover:bg-white/30 active:bg-white/40 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors text-xs sm:text-sm font-medium backdrop-blur-sm shadow-sm min-h-[44px]"
-                          style={{ touchAction: 'manipulation' }}
-                        >
-                          <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
-                          <span>Browse Courses</span>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
+      {/* Dynamic Course Banner - Only show if there are courses */}
+      {courseCards.length > 0 && (
+        <motion.div 
+          variants={itemVariants}
+          className="relative overflow-hidden rounded-xl"
+        >
+          <div className="relative w-full h-auto">
+            {/* Course Cards Carousel */}
+            <div 
+              ref={sliderRef}
+              className="relative overflow-hidden touch-pan-x"
+              onMouseEnter={pauseAutoSlide}
+              onMouseLeave={resumeAutoSlide}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ touchAction: 'pan-x' }}
+            >
               <div 
                 className="flex transition-transform duration-700 ease-in-out" 
                 style={{ transform: `translateX(-${activeCourseIndex * 100}%)` }}
@@ -1013,15 +938,12 @@ const StudentDashboardMain: React.FC = () => {
                     
                     <div className="relative z-10 w-full px-4 py-6 sm:px-6 sm:py-8 md:px-8 lg:px-16 h-full flex items-center transition-all duration-300">
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 h-full w-full max-w-[1200px] mx-auto">
-                        {/* Left side - Welcome information */}
+                        {/* Left side - Course information */}
                         <div className="lg:col-span-2 flex flex-col justify-center space-y-4">
-                          {/* Welcome badge */}
+                          {/* Platform badge */}
                           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                             <span className="text-xs bg-white/20 text-white px-3 py-1 rounded-full backdrop-blur-sm">
-                              Welcome to MEDH
-                            </span>
-                            <span className="text-xs text-white/90">
-                              Learning Platform
+                              MEDH Learning Platform
                             </span>
                           </div>
                         
@@ -1058,9 +980,9 @@ const StudentDashboardMain: React.FC = () => {
                           </div>
                           
                           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-3 mt-4">
-                            {/* Welcome slide buttons - customized for each slide */}
+                            {/* Course action buttons */}
                             <Link 
-                              href={course.id === 'welcome-slide-1' ? "/courses" : "/courses"}
+                              href="/courses"
                               className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors font-medium text-xs sm:text-sm backdrop-blur-sm shadow-sm w-full sm:w-auto min-h-[44px]"
                             >
                               <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -1068,16 +990,16 @@ const StudentDashboardMain: React.FC = () => {
                             </Link>
                             
                             <Link 
-                              href={course.id === 'welcome-slide-1' ? "/dashboards/student/goals" : "/dashboards/student"}
+                              href="/dashboards/student"
                               className="border border-white/30 hover:bg-white/10 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg flex items-center justify-center transition-colors text-xs sm:text-sm backdrop-blur-sm w-full sm:w-auto min-h-[44px]"
                             >
-                              {course.id === 'welcome-slide-1' ? <Target className="mr-2 h-4 w-4 flex-shrink-0" /> : <BarChart2 className="mr-2 h-4 w-4 flex-shrink-0" />}
-                              <span className="truncate">{course.secondaryText || 'Get Started'}</span>
+                              <BarChart2 className="mr-2 h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{course.secondaryText || 'View Progress'}</span>
                             </Link>
                           </div>
                         </div>
                         
-                        {/* Right side - Welcome Features Card */}
+                        {/* Right side - Features Card */}
                         <div className="lg:col-span-1 flex flex-col justify-center mt-4 lg:mt-0">
                           <div className="bg-white/15 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/20 transition-all duration-300 shadow-lg">
                             <h3 className="text-white text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center">
@@ -1086,42 +1008,21 @@ const StudentDashboardMain: React.FC = () => {
                             </h3>
                             
                             <div className="space-y-2 sm:space-y-3">
-                              {/* Feature highlights based on slide */}
+                              {/* Feature highlights */}
                               <div className="space-y-1 sm:space-y-2">
-                                {course.id === 'welcome-slide-1' && (
-                                  <>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
-                                      <span className="truncate">Expert-led courses</span>
-                                    </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
-                                      <span className="truncate">Industry certifications</span>
-                                    </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
-                                      <span className="truncate">Career growth focus</span>
-                                    </div>
-                                  </>
-                                )}
-                                
-                                {course.id === 'welcome-slide-2' && (
-                                  <>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      <span className="truncate">Self-paced learning</span>
-                                    </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      <span className="truncate">24/7 access</span>
-                                    </div>
-                                    <div className="flex items-center text-white/90 text-xs sm:text-sm">
-                                      <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-blue-400" /> 
-                                      <span className="truncate">Mobile-friendly</span>
-                                    </div>
-                                  </>
-                                )}
-                                    </div>
+                                <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                  <span className="truncate">Expert-led courses</span>
+                                </div>
+                                <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                  <span className="truncate">Industry certifications</span>
+                                </div>
+                                <div className="flex items-center text-white/90 text-xs sm:text-sm">
+                                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0 text-green-400" /> 
+                                  <span className="truncate">Career growth focus</span>
+                                </div>
+                              </div>
                                     </div>
                           </div>
                         </div>
@@ -1130,11 +1031,8 @@ const StudentDashboardMain: React.FC = () => {
                   </div>
                 ))}
               </div>
-            )}
             
-            {/* Navigation elements - Only show if we have courses */}
-            {courseCards.length > 0 && (
-              <>
+            {/* Navigation elements */}
                 {/* Navigation arrows - Optimized for mobile touch targets */}
                 <button 
                   onClick={() => navigateToCourse(activeCourseIndex === 0 ? courseCards.length - 1 : activeCourseIndex - 1)}
@@ -1174,11 +1072,10 @@ const StudentDashboardMain: React.FC = () => {
                     />
                   ))}
                 </div>
-              </>
-            )}
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Dashboard content */}
       <div className="w-full py-2 xs:py-3 sm:py-4 md:py-6 lg:py-8 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10">
