@@ -357,9 +357,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     setRememberMe(e.target.checked);
   };
 
-  // Create references for focusing after errors
+  // Create a reference for focusing after errors
   const emailInputRef = useRef<HTMLInputElement>(null);
-  const passwordInputRef = useRef<HTMLInputElement>(null);
   
   // Optimized role-based dashboard routing with memoization
   const rolePathCache = useMemo(() => new Map<string, string>(), []);
@@ -1399,7 +1398,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     if (!recaptchaValue) {
       setRecaptchaError(true);
       showToast.warning("Please complete the reCAPTCHA verification to continue.", { duration: 4000 });
-      // Don't focus any field for reCAPTCHA error - user needs to complete reCAPTCHA
+      setTimeout(() => emailInputRef.current?.focus(), 100);
       return;
     }
     
@@ -1410,7 +1409,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       const loginData: ILoginData = {
         email: data.email,
         password: data.password,
-        generate_quick_login_key: true, // Always generate quick login key
       };
 
       // Add generate_quick_login_key if rememberMe is enabled
@@ -1423,7 +1421,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         postData: loginData,
         requireAuth: false, // Login endpoints are public and don't require authentication
         isLoginRequest: true, // Enable extended timeout for login operations
-        disableToast: true, // Handle error messages manually in onFail callback
         onSuccess: (res: any) => {
           console.log('Login response:', res);
           
@@ -1580,31 +1577,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             emailVerified: userData.email_verified
           };
 
-          // Extract quick_login_key (always generated now)
+          // Extract quick_login_key if present in the response
           const quickLoginKey = res.data?.quick_login_key || null;
           const quickLoginKeyId = res.data?.quick_login_key_id || null;
-
-          // Always store the quick login key for future use
-          if (quickLoginKey && userData.email) {
-            RememberedAccountsManager.addRememberedAccount({
-              email: userData.email,
-              fullName: userData.full_name,
-              role: userData.role || [userRole],
-              quickLoginKey: quickLoginKey,
-              keyId: quickLoginKeyId
-            });
-          }
 
           completeLoginProcess(loginResponseData, quickLoginKey, quickLoginKeyId);
           setRecaptchaError(false);
           setRecaptchaValue(null);
         },
         onFail: async (error) => {
-          console.log('🚨 LOGIN ERROR DEBUG:', error);
-          console.log('🚨 ERROR RESPONSE:', error?.response);
-          console.log('🚨 ERROR RESPONSE DATA:', error?.response?.data);
-          console.log('🚨 ERROR STATUS:', error?.response?.status);
-          console.log('🚨 ERROR MESSAGE:', error?.message);
+          console.log('Login error:', error);
           showToast.dismiss(loadingToastId);
           
           // Check if this is a timeout or network error and allow retry
@@ -1665,24 +1647,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           }
           
           // Handle other login errors with enhanced messaging
-          console.log('🔍 CALLING getEnhancedErrorMessage with:', error);
           const enhancedError = getEnhancedErrorMessage(error);
-          console.log('🎯 getEnhancedErrorMessage returned:', enhancedError);
           showToast.error(enhancedError, { duration: 6000 });
-          
-          // Clear and focus appropriate field based on error type
-          const errorStatus = error?.response?.status;
-          if (errorStatus === 401 || enhancedError.includes('Invalid email or password')) {
-            // Wrong password - clear password field and focus it
-            setValue('password', '');
-            setTimeout(() => passwordInputRef.current?.focus(), 100);
-          } else if (errorStatus === 404 || enhancedError.includes('Account not found')) {
-            // Wrong email - focus email field
-            setTimeout(() => emailInputRef.current?.focus(), 100);
-          } else {
-            // Other errors - focus email field (default)
-            setTimeout(() => emailInputRef.current?.focus(), 100);
-          }
+          setTimeout(() => emailInputRef.current?.focus(), 100);
         }
       });
     } catch (error: any) {
@@ -1708,22 +1675,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         emailVerified: loginResponse.data.user.email_verified
       };
 
-      // Extract quick login key from MFA response
-      const quickLoginKey = loginResponse.data?.quick_login_key || null;
-      const quickLoginKeyId = loginResponse.data?.quick_login_key_id || null;
-
-      // Store the quick login key for future use
-      if (quickLoginKey && loginResponse.data.user.email) {
-        RememberedAccountsManager.addRememberedAccount({
-          email: loginResponse.data.user.email,
-          fullName: loginResponse.data.user.full_name,
-          role: userRole ? [userRole] : [],
-          quickLoginKey: quickLoginKey,
-          keyId: quickLoginKeyId
-        });
-      }
-
-      completeLoginProcess(loginResponseData, quickLoginKey, quickLoginKeyId);
+      completeLoginProcess(loginResponseData, undefined, undefined);
       setShowMFAVerification(false);
       setMFAVerificationState({
         isRequired: false,
@@ -1750,22 +1702,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
 
   // Quick Login Handlers
   const handleQuickAccountSelect = (account: RememberedAccount): void => {
-    console.log('🔐 Quick Login Debug - Account selected:', {
-      email: account.email,
-      hasQuickLoginKey: !!account.quickLoginKey,
-      quickLoginKeyLength: account.quickLoginKey?.length,
-      needsPassword: RememberedAccountsManager.needsPasswordEntry(account.email)
-    });
-    
     setSelectedAccount(account);
     setQuickLoginError('');
     
     // Check if password is needed
     if (RememberedAccountsManager.needsPasswordEntry(account.email)) {
-      console.log('🔐 Quick Login Debug - Password required, showing password form');
       setShowQuickPassword(true);
     } else {
-      console.log('🔐 Quick Login Debug - No password needed, performing quick login');
       // Perform quick login without password
       performQuickLogin(account);
     }
@@ -1836,8 +1779,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
           console.log('res.data.token:', res.data?.token);
           console.log('--- End Debugging ---');
 
-          // Check if quick login was successful
-          if (res && res.data && res.data.data && (res.data.data.token || res.data.data.access_token)) {
+          // If quick login is successful, the response data will be similar to login
+          // and should contain new access token and possibly new refresh token
+          if (res && res.data && res.data.data && (res.data.data.access_token || res.data.data.token)) {
             showToast.dismiss(loadingToastId);
             showToast.success("Welcome back! Logged in with quick login key.", { duration: 2000 });
             
@@ -1859,8 +1803,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
               full_name: res.data.data.user.full_name || '',
               role: res.data.data.user.role || [],
               permissions: res.data.data.user.permissions || [],
-              access_token: res.data.data.token || res.data.data.access_token, // Backend returns 'token'
-              refresh_token: res.data.data.session_id || res.data.data.refresh_token, // Backend returns 'session_id'
+              access_token: res.data.data.access_token || res.data.data.token, // Corrected path
+              refresh_token: res.data.data.refresh_token || res.data.data.session_id, // Corrected path
               emailVerified: res.data.data.user.email_verified
             }, newQuickLoginKey !== null ? newQuickLoginKey : account.quickLoginKey, newQuickLoginKey !== null ? res.data.data.key_id : null); // Pass the new or existing quickLoginKey and keyId
             return; // Exit after successful quick login
@@ -1895,8 +1839,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       // Conditionally include password in loginData (only if provided)
       const loginData: ILoginData = {
         email: account.email,
-        password: password, // Password is guaranteed to be here at this point
-        generate_quick_login_key: true // Always generate quick login key for remembered accounts
+        password: password // Password is guaranteed to be here at this point
       };
 
       await postQuery({
@@ -1904,7 +1847,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         postData: loginData,
         requireAuth: false, // Login endpoints are public and don't require authentication
         isLoginRequest: true, // Enable extended timeout for login operations
-        disableToast: true, // Handle error messages manually in onFail callback
         onSuccess: (res: any) => {
           showToast.dismiss(loadingToastId);
           
@@ -1935,8 +1877,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
         const userData = isNestedStructure ? res.data.user : res.data;
         const token = isNestedStructure ? res.data.token : res.data.access_token;
         const refreshToken = isNestedStructure ? res.data.session_id : res.data.refresh_token;
-                  const quickLoginKey = res.data?.quick_login_key || null; // Always generated now
-          const quickLoginKeyId = res.data?.quick_login_key_id || null;
+        const quickLoginKey = res.data?.quick_login_key || null; // Capture quick_login_key from regular login as well
+        const quickLoginKeyId = res.data?.quick_login_key_id || null;
         
         if (!userData || !userData.id || !userData.email) {
           showToast.error("Incomplete user data received. Please try again.", { duration: 5000 });
@@ -1954,15 +1896,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             emailVerified: userData.email_verified
           };
 
-          // Update last used account with new quick login key (always generated now)
+          // Update last used account (and its quickLoginKey if a new one was issued)
           RememberedAccountsManager.setLastUsedAccount(account.email);
-          RememberedAccountsManager.addRememberedAccount({
-            email: account.email,
-            fullName: account.fullName,
-            role: account.role,
-            quickLoginKey: quickLoginKey, // Always generated now
-            keyId: quickLoginKeyId
-          });
+          if (quickLoginKey) {
+            RememberedAccountsManager.addRememberedAccount({
+              email: account.email,
+              fullName: account.fullName,
+              role: account.role,
+              quickLoginKey: quickLoginKey, // Update with the new quickLoginKey from login
+              keyId: quickLoginKeyId
+            });
+          } else {
+            // If quickLoginKey is not present, remove any old one to ensure password prompt for next login
+            RememberedAccountsManager.addRememberedAccount({
+              email: account.email,
+              fullName: account.fullName,
+              role: account.role,
+              quickLoginKey: undefined,
+              keyId: undefined
+            });
+          }
           
           completeLoginProcess(loginResponseData, quickLoginKey, quickLoginKeyId); // Pass quickLoginKey to completeLoginProcess
         },
@@ -2592,7 +2545,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
                         type={showPassword ? "text" : "password"}
                         autoComplete="current-password"
                         placeholder="Password"
-                        ref={passwordInputRef}
                         className={`w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-700/30 rounded-xl border ${
                           errors.password ? 'border-red-300 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'
                         } focus:border-primary-500 focus:ring focus:ring-primary-500/20 transition-all duration-200 outline-none pl-11 pr-11`}

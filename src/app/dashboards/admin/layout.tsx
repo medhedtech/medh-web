@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, createContext, useContext } from "react";
 import AdminDashboardLayout from "@/components/sections/dashboards/AdminDashboardLayout";
+import AdminAuthGuard from "@/components/auth/AdminAuthGuard";
 import { usePathname } from "next/navigation";
 
 // Define types for the context
@@ -77,15 +78,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <AdminContext.Provider value={contextValue}>
-      <AdminDashboardLayout 
-        userRole="admin"
-        activeMenu={activeMenu}
-        activeSubItems={activeSubItems}
-        onMenuClick={handleMenuClick}
-      >
-        {children}
-      </AdminDashboardLayout>
-    </AdminContext.Provider>
+    <AdminAuthGuard>
+      <AdminContext.Provider value={contextValue}>
+        <AdminDashboardLayout 
+          userRole="admin"
+          activeMenu={activeMenu}
+          activeSubItems={activeSubItems}
+          onMenuClick={handleMenuClick}
+        >
+          {children}
+        </AdminDashboardLayout>
+      </AdminContext.Provider>
+    </AdminAuthGuard>
   );
 } 

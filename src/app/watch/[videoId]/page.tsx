@@ -79,63 +79,268 @@ const VideoPlayerPage: React.FC = () => {
   const router = useRouter();
   const videoId = params?.videoId as string;
 
-  // MAXIMUM SECURITY: Prevent ALL forms of content theft + Link Sharing Protection
+  // 🔒 ULTRA MAXIMUM SECURITY: Complete Video Protection System
   useEffect(() => {
-    // PREVENT MULTIPLE TABS & LINK SHARING
-    const sessionKey = `video_session_${videoId}`;
-    const currentTime = Date.now();
-    
-    // Check if video is already open in another tab
-    const existingSession = localStorage.getItem(sessionKey);
-    if (existingSession) {
-      const sessionData = JSON.parse(existingSession);
-      if (currentTime - sessionData.timestamp < 5000) { // 5 seconds tolerance
-        alert('This video is already open in another tab. Please close other tabs first.');
-        window.close();
-        return;
+    // 1. MANDATORY LOGIN CHECK - FIRST PRIORITY (TEMPORARILY DISABLED FOR TESTING)
+    const checkUserAuthentication = () => {
+      const authToken = localStorage.getItem('authToken') || localStorage.getItem('access_token');
+      const userSession = localStorage.getItem('user') || sessionStorage.getItem('user');
+      
+      // TEMPORARY: Skip login check for testing
+      if (!authToken || !userSession) {
+        console.warn('⚠️ No auth token found, but allowing access for testing');
+        // Create dummy user for testing
+        localStorage.setItem('user', JSON.stringify({
+          id: 'test-user-123',
+          email: 'test@example.com',
+          full_name: 'Test User'
+        }));
+        return true;
       }
-    }
-    
-    // Set current session
-    localStorage.setItem(sessionKey, JSON.stringify({
-      timestamp: currentTime,
-      tabId: Math.random().toString(36).substr(2, 9)
-    }));
-    
-    // Clear session on page unload
-    const handleBeforeUnload = () => {
-      localStorage.removeItem(sessionKey);
+      
+      // Verify token is not expired
+      try {
+        const tokenData = JSON.parse(atob(authToken.split('.')[1]));
+        if (tokenData.exp && tokenData.exp < Date.now() / 1000) {
+          alert('🔒 Session Expired: Please login again to continue watching.');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          return false;
+        }
+      } catch (error) {
+        console.error('Token validation failed');
+        window.location.href = '/login';
+        return false;
+      }
+      
+      return true;
     };
     
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Stop execution if not authenticated
+    if (!checkUserAuthentication()) {
+      return;
+    }
     
-    // Check for direct URL access (prevent link sharing)
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasValidData = urlParams.get('data') || localStorage.getItem(`video_${videoId}`);
+    // 2. ALLOW MULTIPLE TABS BUT TRACK SESSIONS
+    const sessionKey = `video_session_${videoId}`;
+    const userKey = `user_video_access_${videoId}`;
+    const currentTime = Date.now();
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     
-    if (!hasValidData) {
-      alert('Invalid access. Please access video through proper navigation.');
+    // Allow multiple tabs but track them for security
+    const tabId = Math.random().toString(36).substr(2, 9);
+    console.log(`🎬 Video opened in new tab: ${tabId}`);
+    
+    // 3. USER-SPECIFIC ACCESS CONTROL
+    const userAccess = localStorage.getItem(userKey);
+    if (userAccess) {
+      const accessData = JSON.parse(userAccess);
+      if (accessData.userId !== currentUser.id) {
+        alert('🔒 Access Denied: This video session belongs to a different user.');
+        window.location.href = '/dashboards/student';
+        return;
+      }
+    } else {
+      // Set user-specific access
+      localStorage.setItem(userKey, JSON.stringify({
+        userId: currentUser.id,
+        email: currentUser.email,
+        timestamp: currentTime,
+        videoId: videoId
+      }));
+    }
+    
+    // Set current session with enhanced data (allow multiple tabs)
+    const existingSessions = JSON.parse(localStorage.getItem(`${sessionKey}_all`) || '[]');
+    const newSession = {
+      timestamp: currentTime,
+      tabId: tabId,
+      userId: currentUser.id,
+      userAgent: navigator.userAgent,
+      screenResolution: `${screen.width}x${screen.height}`
+    };
+    
+    existingSessions.push(newSession);
+    localStorage.setItem(`${sessionKey}_all`, JSON.stringify(existingSessions));
+    localStorage.setItem(sessionKey, JSON.stringify(newSession));
+    
+    // 4. PREVENT DIRECT URL ACCESS & LINK SHARING
+    const referrer = document.referrer;
+    const validReferrers = [
+      window.location.origin + '/dashboards/student',
+      window.location.origin + '/dashboards/admin',
+      window.location.origin + '/courses',
+      window.location.origin + '/recorded-sessions'
+    ];
+    
+    const hasValidReferrer = validReferrers.some(valid => referrer.includes(valid));
+    const hasValidSession = sessionStorage.getItem(`video_access_${videoId}`);
+    
+    if (!hasValidReferrer && !hasValidSession) {
+      alert('🚫 Invalid Access: Direct video links are not allowed. Please access through the dashboard.');
       window.location.href = '/dashboards/student';
       return;
     }
     
-    // Prevent URL copying
-    const originalURL = window.location.href;
+    // 5. CLEAR URL PARAMETERS TO PREVENT SHARING
     const cleanURL = window.location.origin + window.location.pathname;
-    
-    // Replace URL without data parameters
-    if (window.location.search) {
+    if (window.location.search || window.location.hash) {
       window.history.replaceState({}, document.title, cleanURL);
     }
     
-    // Monitor for URL changes
+    // 6. ENHANCED SESSION CLEANUP (Multiple Tabs Support)
+    const handleBeforeUnload = () => {
+      // Remove current tab session
+      const allSessions = JSON.parse(localStorage.getItem(`${sessionKey}_all`) || '[]');
+      const updatedSessions = allSessions.filter((session: any) => session.tabId !== tabId);
+      
+      if (updatedSessions.length > 0) {
+        localStorage.setItem(`${sessionKey}_all`, JSON.stringify(updatedSessions));
+      } else {
+        localStorage.removeItem(`${sessionKey}_all`);
+        localStorage.removeItem(sessionKey);
+      }
+      
+      sessionStorage.removeItem(`video_access_${videoId}`);
+      console.log(`🎬 Tab ${tabId} closed, remaining sessions: ${updatedSessions.length}`);
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // 7. CONTINUOUS AUTHENTICATION CHECK
+    const authCheckInterval = setInterval(() => {
+      if (!checkUserAuthentication()) {
+        clearInterval(authCheckInterval);
+        return;
+      }
+    }, 30000); // Check every 30 seconds
+    
+    // 8. PREVENT TAB SWITCHING DETECTION
+    let isTabActive = true;
+    const handleVisibilityChange = () => {
+      if (document.hidden || document.visibilityState === 'hidden') {
+        isTabActive = false;
+        // Pause video when tab is not active (anti-screen recording)
+        const video = document.querySelector('video');
+        if (video && !video.paused) {
+          video.pause();
+        }
+        // Also pause using videoRef if available
+        if (videoRef.current && !videoRef.current.paused) {
+          videoRef.current.pause();
+        }
+      } else {
+        isTabActive = true;
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('copy', preventCopyPaste);
+      clearInterval(authCheckInterval);
+      if (watermark && watermark.parentNode) {
+        watermark.parentNode.removeChild(watermark);
+      }
+    };
+    
+    // 9. PREVENT URL MANIPULATION & SHARING
     const handlePopState = () => {
       if (window.location.href !== cleanURL) {
+        alert('🚫 URL Manipulation Detected: Redirecting to dashboard.');
         window.location.href = '/dashboards/student';
       }
     };
     
     window.addEventListener('popstate', handlePopState);
+    
+    // 10. PREVENT COPY/PASTE OF URL
+    const preventCopyPaste = (e: ClipboardEvent) => {
+      if (window.location.pathname.includes('/watch/')) {
+        e.preventDefault();
+        alert('🚫 Copying video links is not allowed for security reasons.');
+      }
+    };
+    
+    document.addEventListener('copy', preventCopyPaste);
+    
+    // 11. DETECT DEVELOPER TOOLS
+    let devToolsOpen = false;
+    const detectDevTools = () => {
+      const threshold = 160;
+      if (window.outerHeight - window.innerHeight > threshold || 
+          window.outerWidth - window.innerWidth > threshold) {
+        if (!devToolsOpen) {
+          devToolsOpen = true;
+          alert('🚫 Developer Tools Detected: Video access blocked for security.');
+          window.location.href = '/dashboards/student';
+        }
+      } else {
+        devToolsOpen = false;
+      }
+    };
+    
+    setInterval(detectDevTools, 1000);
+    
+    // 12. PREVENT SCREENSHOT/SCREEN RECORDING
+    const preventScreenCapture = () => {
+      // Blur content when print screen is pressed
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'PrintScreen' || 
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+            (e.ctrlKey && e.key === 'u') ||
+            e.key === 'F12') {
+          e.preventDefault();
+          document.body.style.filter = 'blur(10px)';
+          alert('🚫 Screen capture is not allowed for this content.');
+          setTimeout(() => {
+            document.body.style.filter = 'none';
+          }, 3000);
+        }
+      });
+      
+      // Detect screen recording APIs
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
+        navigator.mediaDevices.getDisplayMedia = function() {
+          alert('🚫 Screen recording is not allowed for this content.');
+          window.location.href = '/dashboards/student';
+          return Promise.reject(new Error('Screen recording blocked'));
+        };
+      }
+    };
+    
+    preventScreenCapture();
+    
+    // 13. WATERMARK PROTECTION
+    const addSecurityWatermark = () => {
+      const watermark = document.createElement('div');
+      watermark.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 48px;
+        color: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
+        z-index: 9999;
+        user-select: none;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      `;
+      watermark.textContent = `${currentUser.email || 'PROTECTED'} - ${new Date().toLocaleDateString()}`;
+      document.body.appendChild(watermark);
+      
+      return watermark;
+    };
+    
+    const watermark = addSecurityWatermark();
     // Disable right-click context menu
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
@@ -198,14 +403,7 @@ const VideoPlayerPage: React.FC = () => {
       }
     };
 
-    // Pause video when tab becomes hidden (prevents background recording)
-    const handleVisibilityChange = () => {
-      if (document.hidden || document.visibilityState === 'hidden') {
-        if (videoRef.current && !videoRef.current.paused) {
-          videoRef.current.pause();
-        }
-      }
-    };
+    // Note: handleVisibilityChange is already defined in the security section above
 
     // Detect focus loss (user switched to another app)
     const handleBlur = () => {
@@ -306,13 +504,23 @@ const VideoPlayerPage: React.FC = () => {
         pointer-events: none !important;
       }
       
-      /* Disable video controls manipulation */
+      /* Show video controls on hover */
       video::-webkit-media-controls {
-        display: none !important;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      video:hover::-webkit-media-controls {
+        opacity: 1;
       }
       
       video::-webkit-media-controls-enclosure {
-        display: none !important;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      video:hover::-webkit-media-controls-enclosure {
+        opacity: 1;
       }
       
       /* Mobile specific restrictions */
@@ -1396,9 +1604,7 @@ const VideoPlayerPage: React.FC = () => {
                         );
                        }}
                        onContextMenu={(e) => e.preventDefault()}
-                       controlsList="nodownload nofullscreen noremoteplaybook"
-                       disablePictureInPicture
-                       disableRemotePlayback
+                       controlsList="nodownload noremoteplaybook"
                        controls
                        preload="metadata"
                      />

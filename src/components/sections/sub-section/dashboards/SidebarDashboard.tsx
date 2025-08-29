@@ -1031,50 +1031,38 @@ const SidebarDashboard: React.FC<SidebarDashboardProps> = ({
       icon: <LayoutDashboard className="w-5 h-5" />
     },
     {
-      name: "Courses",
-      icon: <BookOpen className="w-5 h-5" />,
-      subItems: [
-        {
-          name: "All Courses",
-          path: "/courses",
-          icon: <LayoutGrid className="w-5 h-5" />
-        },
-        {
-          name: "My Courses",
-          path: `/dashboards/${userRole}/my-courses`,
-          icon: <BookOpenCheck className="w-5 h-5" />
-        },
-        {
-          name: "Live Classes",
-          path: `/dashboards/${userRole}/live-classes`,
-          icon: <Video className="w-5 h-5" />
-        }
-      ]
-    },
-    {
       name: "Course Management",
-      path: formatRoute("admin", "course"),
       icon: <BookOpen className="w-5 h-5" />,
       subItems: [
         {
           name: "All Courses",
-          path: formatRoute("admin", "listofcourse"),
+          path: formatRoute("admin", "courses"),
           icon: <LayoutGrid className="w-4 h-4" />
         },
         {
           name: "Add Course",
-          path: formatRoute("admin", "add-courses"),
+          path: formatRoute("admin", "courses/create"),
           icon: <Plus className="w-4 h-4" />
         },
         {
-          name: "Update Course",
+          name: "Edit Courses",
           path: formatRoute("admin", "edit-courses"),
           icon: <Pencil className="w-4 h-4" />
         },
         {
-          name: "Categories",
+          name: "Course Categories",
           path: formatRoute("admin", "course-categories"),
           icon: <FolderTree className="w-4 h-4" />
+        },
+        {
+          name: "Course Card Editor",
+          path: formatRoute("admin", "course-card-editor"),
+          icon: <Pencil className="w-4 h-4" />
+        },
+        {
+          name: "Live Classes",
+          path: formatRoute("admin", "live-classes"),
+          icon: <Video className="w-4 h-4" />
         }
       ]
     },
