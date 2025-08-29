@@ -168,15 +168,29 @@ export const usePostQuery = <T = any>(): UsePostQueryResult<T> => {
       if ((response as any).status === 'error') {
         const errorResponse = response as any;
         const error = new Error(errorResponse.message || errorResponse.error || 'Request failed');
-        
-        // Try to determine the HTTP status from the error message or default to 401 for auth errors
-        let httpStatus = 500; // Default to server error
-        if (errorResponse.error === 'Unauthorized' || errorResponse.message === 'Unauthorized') {
-          httpStatus = 401;
-        } else if (errorResponse.message?.includes('Invalid credentials')) {
-          httpStatus = 401;
+
+        // Determine HTTP status
+        let httpStatus =
+          (errorResponse.statusCode || errorResponse.status || errorResponse.httpStatus) ?? 500;
+
+        // Map common messages to appropriate status when status not provided by client
+        const lowerMsg = String(errorResponse.message || errorResponse.error || '').toLowerCase();
+        if (!httpStatus || httpStatus === 500) {
+          if (
+            lowerMsg.includes('unauthorized') ||
+            lowerMsg.includes('invalid credentials') ||
+            lowerMsg.includes('incorrect temporary password')
+          ) {
+            httpStatus = 401;
+          } else if (lowerMsg.includes('not found')) {
+            httpStatus = 404;
+          } else if (lowerMsg.includes('too many') || lowerMsg.includes('rate limit')) {
+            httpStatus = 429;
+          } else if (lowerMsg.includes('bad request') || lowerMsg.includes('validation')) {
+            httpStatus = 400;
+          }
         }
-        
+
         (error as any).response = {
           status: httpStatus,
           data: errorResponse

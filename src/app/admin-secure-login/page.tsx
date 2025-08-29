@@ -122,7 +122,8 @@ const AdminLoginForm: React.FC = () => {
         });
         const userResult = await userResp.json();
         if (!userResp.ok) {
-          throw new Error(userResult.message || 'Login failed');
+          const friendly = userResp.status === 401 ? 'Incorrect email or password' : (userResult.message || 'Login failed');
+          throw new Error(friendly);
         }
         // Accept token formats { token } or { data: { access_token } }
         const token = userResult.token || userResult?.data?.access_token;
@@ -138,7 +139,8 @@ const AdminLoginForm: React.FC = () => {
         }
       } else {
         if (!adminResp.ok) {
-          throw new Error(result?.message || 'Login failed');
+          const friendly = adminResp.status === 401 ? 'Incorrect email or password' : (result?.message || 'Login failed');
+          throw new Error(friendly);
         }
         if (result.token) {
           localStorage.setItem('admin_token', result.token);

@@ -593,6 +593,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
     const errorResponse = error?.response?.data;
     const status = error?.response?.status;
     const message = errorResponse?.message || error?.message || 'An unexpected error occurred';
+    const lowerMessage = String(message).toLowerCase();
 
     // Network and connection errors
     if (!navigator.onLine) {
@@ -608,19 +609,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
       return "Request timed out. Our servers might be busy. Please try again in a few moments.";
     }
 
+    // Normalize common backend phrasing
+    if (lowerMessage.includes('invalid credential')) {
+      return "Incorrect email or password.";
+    }
+
     // HTTP status specific errors
     switch (status) {
       case 400:
-        if (message.includes('password')) {
-          return "Invalid email or password. Please check your credentials and try again.";
+        if (lowerMessage.includes('password') || lowerMessage.includes('credential')) {
+          return "Incorrect email or password. Please check your credentials and try again.";
         }
-        if (message.includes('email')) {
+        if (lowerMessage.includes('email')) {
           return "Please enter a valid email address.";
         }
         return `${message}`;
       
       case 401:
-        return "Invalid email or password. Please check your credentials.";
+        return "Incorrect email or password.";
       
       case 403:
         return "Access denied. Your account may be suspended or restricted.";
@@ -1646,9 +1652,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectPath: propRedirectPath, p
             return;
           }
           
-          // Handle other login errors with enhanced messaging
+          // Handle other login errors with enhanced messaging and preserve inputs
           const enhancedError = getEnhancedErrorMessage(error);
           showToast.error(enhancedError, { duration: 6000 });
+
+          // Clear fields so user can re-enter from scratch and focus email
+          setValue('email', '', { shouldValidate: true });
+          setValue('password', '', { shouldValidate: false });
           setTimeout(() => emailInputRef.current?.focus(), 100);
         }
       });
