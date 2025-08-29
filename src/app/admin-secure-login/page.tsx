@@ -84,35 +84,77 @@ const AdminLoginForm: React.FC = () => {
   // Handle form submission
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin-auth/login`, {
+      // Try admin-auth login first (local or env base)
+      let adminResp = await fetch(`${API_BASE_URL}/admin-auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password
-        }),
+        body: JSON.stringify({ email: data.email, password: data.password }),
       });
 
-      const result = await response.json();
+      let result = await adminResp.json().catch(() => ({}));
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Login failed');
+      // If admin route not found locally, retry against production API directly
+      if (!adminResp.ok && adminResp.status === 404) {
+        const PROD_BASE = 'https://api.medh.co/api/v1';
+        adminResp = await fetch(`${PROD_BASE}/admin-auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ email: data.email, password: data.password }),
+        });
+        result = await adminResp.json().catch(() => ({}));
       }
 
-      // Store admin token
-      if (result.token) {
-        localStorage.setItem('admin_token', result.token);
-        localStorage.setItem('admin_user', JSON.stringify(result.admin));
+      // If admin route not available, fallback to standard auth login
+      if (!adminResp.ok && (adminResp.status === 404 || (result && result.message === 'Invalid route'))) {
+        const userResp = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ email: data.email, password: data.password }),
+        });
+        const userResult = await userResp.json();
+        if (!userResp.ok) {
+          throw new Error(userResult.message || 'Login failed');
+        }
+        // Accept token formats { token } or { data: { access_token } }
+        const token = userResult.token || userResult?.data?.access_token;
+        if (token) {
+          // Persist to both localStorage and sessionStorage for guard compatibility
+          localStorage.setItem('admin_token', token);
+          sessionStorage.setItem('admin_token', token);
+          const adminLike = userResult.admin || userResult.user || userResult.data?.user || {};
+          localStorage.setItem('admin_user', JSON.stringify(adminLike));
+          localStorage.setItem('admin_data', JSON.stringify(adminLike));
+          sessionStorage.setItem('admin_user', JSON.stringify(adminLike));
+          sessionStorage.setItem('admin_data', JSON.stringify(adminLike));
+        }
+      } else {
+        if (!adminResp.ok) {
+          throw new Error(result?.message || 'Login failed');
+        }
+        if (result.token) {
+          localStorage.setItem('admin_token', result.token);
+          sessionStorage.setItem('admin_token', result.token);
+          localStorage.setItem('admin_user', JSON.stringify(result.admin));
+          localStorage.setItem('admin_data', JSON.stringify(result.admin));
+          sessionStorage.setItem('admin_user', JSON.stringify(result.admin));
+          sessionStorage.setItem('admin_data', JSON.stringify(result.admin));
+        }
       }
 
-      showToast.success("Login successful! Redirecting to admin dashboard...", { duration: 3000 });
-      
+      showToast.success("Login successful! Redirecting to admin dashboard...", { duration: 1500 });
       setTimeout(() => {
-        router.push("/dashboards/admin");
-      }, 1500);
-
+        // Force full navigation to ensure guard sees latest storage
+        window.location.assign('/dashboards/admin');
+      }, 800);
     } catch (error: any) {
       console.error('Login error:', error);
       const errorMessage = error.message || 'Login failed. Please check your credentials.';

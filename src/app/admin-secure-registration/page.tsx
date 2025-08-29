@@ -183,12 +183,13 @@ const AdminRegisterForm: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
-          name: data.full_name,
+          full_name: data.full_name,
           email: data.email,
           password: data.password,
-          role: data.admin_role,
+          admin_role: data.admin_role,
           phone: data.phone,
           department: data.department,
           designation: data.designation,
@@ -341,10 +342,10 @@ const AdminRegisterForm: React.FC = () => {
                           }`}
                         >
                           <option value="" disabled>Select admin role</option>
-                          <option value="super_admin">Super Admin</option>
+                          <option value="super-admin">Super Admin</option>
                           <option value="admin">Admin</option>
                           <option value="moderator">Moderator</option>
-                          <option value="content_manager">Content Manager</option>
+                          <option value="content_manager" disabled>Content Manager</option>
                         </select>
                         <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       </div>
